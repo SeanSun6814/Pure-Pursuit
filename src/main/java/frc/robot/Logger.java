@@ -4,8 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import Obj.MessageLevel;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
 
 /**
@@ -25,6 +23,7 @@ public class Logger {
 	// private static Notifier notifier;
 
 	PrintWriter writer = null;
+	boolean valid = false;
 
 	public static Logger getInstance() {
 		if (instance == null)
@@ -34,17 +33,19 @@ public class Logger {
 
 	private Logger() {
 		try {
-			String name = DriverStation.getInstance().getEventName() + DriverStation.getInstance().getMatchType()
-					+ "Match" + DriverStation.getInstance().getMatchNumber() + ".txt";
+			// String name = DriverStation.getInstance().getEventName() +
+			// DriverStation.getInstance().getMatchType()
+			// + "Match" + DriverStation.getInstance().getMatchNumber() + ".txt";
 			// writer = new PrintWriter("/home/lvuser/" + name + ".csv");
 			writer = new PrintWriter("/home/lvuser/Log.csv");
+			valid = true;
+			writer.println("-----,-----------,-----------,--------------");
+			writer.println("MessageLevel, Title, Timestamp, Message");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			System.out.println("Logger init failed: file not found.");
 		}
 		System.out.println("Log inited");
-		writer.println("-----,-----------,-----------,--------------");
-		writer.println("MessageLevel, Title, Timestamp, Message");
 
 		// notifier = new Notifier(() -> {
 		// flush();
@@ -66,9 +67,12 @@ public class Logger {
 	 * the data is not saved in the file. Use flush to apply buffer to file.
 	 */
 	private void logData(String data) {
-		// System.out.println(data);
-		writer.println(data);
-		flush();
+		if (valid) {
+			writer.println(data);
+			flush();
+		} else
+			System.out.println(data);
+
 	}
 
 	/**
