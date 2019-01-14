@@ -1,0 +1,41 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - PathFollower",
+      "request": "launch",
+      "mainClass": "path.PathFollower",
+      "projectName": "Restart Pure Pursuit"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - Tester",
+      "request": "launch",
+      "mainClass": "path.Tester",
+      "projectName": "Restart Pure Pursuit"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - Tester",
+      "request": "launch",
+      "mainClass": "Tester",
+      "projectName": "Restart Pure Pursuit"
+    },
+    {
+      "type": "wpilib",
+      "name": "WPILib Desktop Debug",
+      "request": "launch",
+      "desktop": true
+    },
+    {
+      "type": "wpilib",
+      "name": "WPILib roboRIO Debug",
+      "request": "launch",
+      "desktop": false
+    }
+  ]
+}
