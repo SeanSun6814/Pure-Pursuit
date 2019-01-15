@@ -40,6 +40,11 @@ public class Drive extends Subsystem {
     }
 
     public void drive(double left, double right) {
+        // ramp
+        right = ramp(right, prevRightMotor);
+        left = ramp(left, prevLeftMotor);
+        prevRightMotor = right;
+        prevLeftMotor = left;
         leftMaster.set(ControlMode.PercentOutput, left);
         rightMaster.set(ControlMode.PercentOutput, right);
     }
@@ -171,7 +176,7 @@ public class Drive extends Subsystem {
     }
 
     private double prevLeftMotor = 0, prevRightMotor = 0;
-    private double maxAcceleration = 0.25; // 12/0.05;
+    private double maxAcceleration = 0.025; // 12/0.05;
 
     private double ramp(double value, double prevValue) {
         if (value - prevValue > maxAcceleration) {

@@ -57,12 +57,12 @@ public class Robot extends TimedRobot {
   private void initPath() {
     // double angle = 0;
     Point pos = new Point();
-    double maxVel = 0.4; // 6 feet/s
-    double maxAcc = 0.1;
-    double spacing = 0.1, maxAngVel = 0.5; // 3 in simu
-    double lookAheadDistance = 0.1524 * 4/* 6 inches */;
-    double trackWidth = 0.95;// 0.5842; // 23 inches
-    double targetTolerance = 0.75;// m
+    double maxVel = 0.3; // 6 feet/s
+    double maxAcc = 0.1; // m/sec every sec
+    double spacing = 0.1, maxAngVel = 0.6; // 3 in simu
+    double lookAheadDistance = 0.1524 * 3/* 6 inches */;
+    double trackWidth = 0.8;// 0.5842; // 23 inches
+    double targetTolerance = 0.1;// m
     // double maxVel = 250, maxAcc = 70, spacing = 6, maxAngVel = 6;
     // double lookAheadDistance = 12;
 
@@ -74,8 +74,14 @@ public class Robot extends TimedRobot {
     // path = pathGenerator
     // .calculate(new Path(spacing, maxVel, maxAcc, maxAngVel, Arrays.asList(new
     // Waypoint(0, 0), new Waypoint(0, 2))));
+    // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
+    // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 2), new Waypoint(-2, 2),
+    // new Waypoint(-2, 6.5))));
+    // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
+    // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 4), new Waypoint(-2, 4),
+    // new Waypoint(-2, 0))));
     path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
-        Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 2), new Waypoint(-2, 2), new Waypoint(-2, 6.5))));
+        Arrays.asList(new Waypoint(0, 0), new Waypoint(0, -4), new Waypoint(-2, -4), new Waypoint(-2, 0))));
 
     log.log("Path: [" + path.waypoints.size() + "]");
     log.log(path);
@@ -117,6 +123,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() { // run every 50ms, 20Hz
     double power = -joystick1.getRawAxis(1);
     double turn = joystick2.getRawAxis(0);
+    // double turn = joystick1.getRawAxis(0);
 
     drive.driveJoystick(power, turn);
 
@@ -170,6 +177,6 @@ public class Robot extends TimedRobot {
 
     log.log("POS: (" + round(odometer.getX()) + "; " + round(odometer.getY()));
     log.log("/ GYRO: " + round(drive.getGyro()));
-    log.log("| Encoders left right: " + round(drive.getLeftEncoder()) + ", " + round(drive.getRightEncoder()));
+    log.log("| Encoders left right: " + round(drive.getLeftEncoder()) + "; " + round(drive.getRightEncoder()));
   }
 }

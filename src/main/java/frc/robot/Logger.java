@@ -59,7 +59,7 @@ public class Logger {
 	}
 
 	public void log(Object message, String sender, MessageLevel messageLevel) {
-		logData(messageLevel.name() + ", \"" + sender + "\", " + System.currentTimeMillis() + ", \"" + message + "\"");
+		logData(messageLevel.name() + ", \"" + sender + "\", " + Timer.getFPGATimestamp() + ", \"" + message + "\"");
 	}
 
 	/**
