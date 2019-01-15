@@ -58,8 +58,12 @@ public class Logger {
 		log(message, "Default", MessageLevel.Info);
 	}
 
+	public void log(String sender, Object message) {
+		log(message, sender, MessageLevel.Info);
+	}
+
 	public void log(Object message, String sender, MessageLevel messageLevel) {
-		logData(messageLevel.name() + ", \"" + sender + "\", " + Timer.getFPGATimestamp() + ", \"" + message + "\"");
+		logData(messageLevel.name() + ", " + sender + ", " + Timer.getFPGATimestamp() + ", " + message);
 	}
 
 	/**

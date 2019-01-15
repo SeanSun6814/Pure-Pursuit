@@ -43,6 +43,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     if (joystick1.getRawButton(1)) {
+
     } else {
       drive.resetSensors();
       log.log("SENSORS RESET!!!");
@@ -57,10 +58,11 @@ public class Robot extends TimedRobot {
   private void initPath() {
     // double angle = 0;
     Point pos = new Point();
-    double maxVel = 0.3; // 6 feet/s
+    double maxVel = 0.4; // 6 feet/s
     double maxAcc = 0.1; // m/sec every sec
-    double spacing = 0.1, maxAngVel = 0.6; // 3 in simu
-    double lookAheadDistance = 0.1524 * 3/* 6 inches */;
+    double spacing = 0.1, maxAngVel = 1.5; // 3 in simu
+    double lookAheadDistance = 0.1524 * 4;
+    /* 6 inches */
     double trackWidth = 0.8;// 0.5842; // 23 inches
     double targetTolerance = 0.1;// m
     // double maxVel = 250, maxAcc = 70, spacing = 6, maxAngVel = 6;
@@ -77,14 +79,19 @@ public class Robot extends TimedRobot {
     // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
     // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 2), new Waypoint(-2, 2),
     // new Waypoint(-2, 6.5))));
+    path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel, Arrays.asList(new Waypoint(0, 0),
+        new Waypoint(0, 4), new Waypoint(-2, 4), new Waypoint(-2, 2), new Waypoint(2, 2))));
     // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
     // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 4), new Waypoint(-2, 4),
     // new Waypoint(-2, 0))));
-    path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
-        Arrays.asList(new Waypoint(0, 0), new Waypoint(0, -4), new Waypoint(-2, -4), new Waypoint(-2, 0))));
+    // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
+    // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, -4), new Waypoint(-2, -4),
+    // new Waypoint(-2, 0))));
 
     log.log("Path: [" + path.waypoints.size() + "]");
-    log.log(path);
+    for (int i = 0; i < path.waypoints.size(); i++) {
+      log.log("path", path.waypoints.get(i));
+    }
     log.log("__________________________\n\n");
     // end generate path
 
@@ -122,8 +129,8 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() { // run every 50ms, 20Hz
     double power = -joystick1.getRawAxis(1);
-    double turn = joystick2.getRawAxis(0);
-    // double turn = joystick1.getRawAxis(0);
+    // double turn = joystick2.getRawAxis(0);
+    double turn = joystick1.getRawAxis(4);
 
     drive.driveJoystick(power, turn);
 
@@ -168,6 +175,7 @@ public class Robot extends TimedRobot {
 
   private void updateSmartDashboard() {
     SmartDashboard.putNumber("X", round(odometer.getX()));
+    ;
     SmartDashboard.putNumber("Y", round(odometer.getY()));
 
     SmartDashboard.putNumber("Gyro", round(drive.getGyro()));
@@ -175,8 +183,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Left Encoder", round(drive.getLeftEncoder()));
     SmartDashboard.putNumber("Right Encoder", round(drive.getRightEncoder()));
 
-    log.log("POS: (" + round(odometer.getX()) + "; " + round(odometer.getY()));
-    log.log("/ GYRO: " + round(drive.getGyro()));
+    // log.log("POS: (" + round(odometer.getX()) + "; " + round(odometer.getY()));
+    log.log("gyro", round(drive.getGyro()));
     log.log("| Encoders left right: " + round(drive.getLeftEncoder()) + "; " + round(drive.getRightEncoder()));
   }
 }

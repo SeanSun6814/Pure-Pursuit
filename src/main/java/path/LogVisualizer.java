@@ -22,7 +22,7 @@ class LogVisualizer extends JFrame implements KeyListener {
     static LogVisualizer instance;
     Draw draw;
 
-    final String fileName = "C:\\Users\\Sean\\Desktop\\newformat.csv";
+    final String fileName = "C:\\Users\\Sean\\Desktop\\LogOverlap.csv";
 
     List<String[]> file = new ArrayList<>();
 
@@ -73,6 +73,9 @@ class LogVisualizer extends JFrame implements KeyListener {
         path.add(new ArrayList<>()); // idx 1: y pos
 
         for (int i = 0; i < file.size(); i++) {
+            if (file.get(i).length < 4)
+                continue;
+
             String level = file.get(i)[0].trim().toLowerCase();
             String title = file.get(i)[1].trim().toLowerCase();
             String timestamp = file.get(i)[2].trim().toLowerCase();
@@ -104,16 +107,18 @@ class LogVisualizer extends JFrame implements KeyListener {
                 double curvature = Double.parseDouble(message);
                 data.get(3).add(curvature);
             } else if (title.equals("path")) {
-                String[] msg = message.split(";");
+                String[] croppedMsg = message.split("\\|");
+                String[] msg = croppedMsg[0].split(";");
                 double x = Double.parseDouble(msg[0]);
                 double y = Double.parseDouble(msg[1]);
                 path.get(0).add(x);
                 path.get(1).add(y);
-            } else if (title.equals("closestpoint")) {
-                String[] msg = message.split(";");
+            } else if (title.equals("closestwaypoint")) {
+                String[] croppedMsg = message.split("\\|");
+                String[] msg = croppedMsg[0].split(";");
                 double x = Double.parseDouble(msg[0]);
                 double y = Double.parseDouble(msg[1]);
-                double v = Double.parseDouble(msg[2]);
+                double v = Double.parseDouble(croppedMsg[1]);
                 data.get(8).add(x);
                 data.get(9).add(y);
                 data.get(10).add(v);
@@ -274,6 +279,7 @@ class Draw extends JPanel {
     }
 
     private double getData(int type) {
+        System.out.println(index + ", " + type);
         return data.get(type).get(index);
     }
 

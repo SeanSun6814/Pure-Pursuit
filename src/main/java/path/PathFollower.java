@@ -30,40 +30,6 @@ public class PathFollower extends LogBase {
 
 	public static void main(String[] args) {
 
-		Point robotPos = new Point(0, 0);
-		double gyro = 0;
-
-		double lookAheadDistance = 0.1524 * 4;
-
-		gyro = 180 - gyro;
-
-		Point lookAheadPoint = new Point(0, 0.61);// lookAheadPoint(robotPos);
-		// log("RobotPos: " + robotPos);
-		// log("LookaheadPoint: " + lookAheadPoint);
-		double horizontalDistance2LookAheadPoint;
-		double a = -Math.tan(gyro);
-		double b = 1;
-		double c = Math.tan(gyro) * robotPos.x - robotPos.y;
-
-		horizontalDistance2LookAheadPoint = Math.abs(a * lookAheadPoint.x + b * lookAheadPoint.y + c)
-				/ (Math.sqrt(a * a + b * b));
-		// log("horizontalDistance2LookAheadPoint: " +
-		// horizontalDistance2LookAheadPoint);
-
-		double side = Math.signum(
-				Math.sin(gyro) * (lookAheadPoint.x - robotPos.x) - Math.cos(gyro) * (lookAheadPoint.y - robotPos.y));
-
-		// see if point b is above or under r
-		// side *= Math.signum(Math.sin(gyro));
-
-		// log("side: " + side);
-
-		double curvature = 2 * side * horizontalDistance2LookAheadPoint / lookAheadDistance / lookAheadDistance;
-
-		// log("Curvature: " + curvature);
-		// return curvature;
-
-		System.out.println(curvature);
 	}
 
 	public PathFollower(Path path, double lookAheadDistance, double trackWidth, double targetTolerance) {
@@ -74,13 +40,14 @@ public class PathFollower extends LogBase {
 		this.targetTolerance = targetTolerance;
 		this.done = false;
 		searchLimit = (int) (lookAheadDistance / path.spacing * 2) + 1; // leave 2x margin, and ceil it
-		log("searchLimit: " + searchLimit);
+		log("searchLimit", searchLimit);
 	}
 
 	private int getClosestWaypointIndex(Point robotPos) {
 		// log(robotPos);
 		double minDistanceSoFar = distanceBetween(path.waypoints.get(0).p, robotPos);
 		int minDistanceIndexSoFar = 0;
+		
 		// don't look back, and also don't look too far ahead (avoids losing path at
 		// cross section)
 		int searchFrom = 0;
@@ -162,8 +129,7 @@ public class PathFollower extends LogBase {
 		}
 		log("Lookahead Search Range: " + searchFrom + "- " + searchTo);
 
-		log("Circle and ALL line segments do not intercept; robot has lost its path; returning last closest point or last lookahead point for it to get back.",
-				MessageLevel.Warning);
+		log("Circle and ALL line segments do not intercept; robot has lost its path; returning last closest point or last lookahead point for it to get back.");
 
 		if (prevLookAheadPoint != null) {
 			return prevLookAheadPoint;
@@ -376,8 +342,8 @@ public class PathFollower extends LogBase {
 		gyro = Math.PI - gyro;
 
 		Point lookAheadPoint = lookAheadPoint(robotPos);
-		log("RobotPos: " + robotPos);
-		log("LookaheadPoint: " + lookAheadPoint);
+		log("robotpos", robotPos);
+		log("lookaheadpoint", lookAheadPoint);
 		double horizontalDistance2LookAheadPoint;
 		double a = -Math.tan(gyro);
 		double b = 1;
@@ -397,7 +363,7 @@ public class PathFollower extends LogBase {
 
 		double curvature = 2 * side * horizontalDistance2LookAheadPoint / lookAheadDistance / lookAheadDistance;
 
-		log("Curvature: " + curvature);
+		log("curvature", curvature);
 		return curvature;
 	}
 
@@ -498,7 +464,7 @@ public class PathFollower extends LogBase {
 		gyro = Math.toRadians(gyro + 90);
 
 		Waypoint waypoint = getInterpolatedWaypoint(robotPos);
-		log("found closest waypoint:" + waypoint);
+		log("closestwaypoint", waypoint);
 		double curvature = getCurvature(robotPos, gyro);
 
 		// double angularVel = waypoint.v * curvature; // w=v/r
@@ -528,9 +494,9 @@ public class PathFollower extends LogBase {
 		// linearVel = angVel / curvature
 		double targetVelocity;
 		if (onPath) {
-			targetVelocity = Math.min(waypoint.v, path.maxAngleVel / curvature);
+			targetVelocity = Math.min(waypoint.v, path.maxAngleVel / Math.abs(curvature));
 		} else {
-			targetVelocity = path.maxAngleVel / curvature;
+			targetVelocity = path.maxAngleVel / Math.abs(curvature);
 		}
 
 		double leftVel = targetVelocity * (2 + curvature * trackWidth) / 2;
@@ -539,7 +505,7 @@ public class PathFollower extends LogBase {
 		double leftAcc = getAcceleration(leftVel, prevLeftVel, dt);
 		double rightAcc = getAcceleration(rightVel, prevRightVel, dt);
 
-		log("Velocities (left; right):" + leftVel + "; " + rightVel);
+		log("motoroutput", leftVel + "; " + rightVel);
 
 		prevLeftVel = leftVel;
 		prevRightVel = rightVel;

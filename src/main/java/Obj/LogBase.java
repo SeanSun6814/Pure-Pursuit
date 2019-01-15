@@ -29,4 +29,8 @@ public abstract class LogBase {
     protected void log(Object message, MessageLevel messageLevel) {
         Logger.getInstance().log(message, systemName, messageLevel);
     }
+
+    protected void log(String title, Object message) {
+        Logger.getInstance().log(message, title, MessageLevel.Default);
+    }
 }
