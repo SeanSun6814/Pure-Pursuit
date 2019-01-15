@@ -501,15 +501,40 @@ public class PathFollower extends LogBase {
 		log("found closest waypoint:" + waypoint);
 		double curvature = getCurvature(robotPos, gyro);
 
-		double angularVel = waypoint.v * curvature; // w=v/r
+		// double angularVel = waypoint.v * curvature; // w=v/r
 
-		angularVel = clamp(angularVel, -path.maxAngleVel, path.maxAngleVel);
-		curvature = angularVel / waypoint.v;
+		// angularVel = clamp(angularVel, -path.maxAngleVel, path.maxAngleVel);
+		// curvature = angularVel / waypoint.v;
 
 		// curvature = clamp(curvature, -maxAngularVel, maxAngularVel);
 
-		double leftVel = waypoint.v * (2 + curvature * trackWidth) / 2;
-		double rightVel = waypoint.v * (2 - curvature * trackWidth) / 2;
+		// if we are on the path, then the target velocity is accurate, however, when we
+		// are slightly off the path or getting back onto the path, we shouldn't use the
+		// path's velocity. In other words, when we are not exactly on the path, we
+		// could have a different curvature than the pre-generated curvature. If our
+		// runtime curvature is big, but our path here happens to be straight, we may be
+		// going through a small turn on great speeds.
+		// The solution to this is to use the runtime curvature (just found) to
+		// calculate the max velocity for desired AngAccel. But we cannot ignore the
+		// pre-slow-down that our pre-generated velocities give us. To satisfy both, we
+		// take the minimum of the two.
+
+		// If we are not on the path, however, we don't need to think about the path's
+		// velocity at all since the small turns don't apply, we can just simply go as
+		// fast as our runtime turning allows.
+
+		// current max velocity could be calculated:
+		// angVel = linearVel / radius, curvature = 1 / radius
+		// linearVel = angVel / curvature
+		double targetVelocity;
+		if (onPath) {
+			targetVelocity = Math.min(waypoint.v, path.maxAngleVel / curvature);
+		} else {
+			targetVelocity = path.maxAngleVel / curvature;
+		}
+
+		double leftVel = targetVelocity * (2 + curvature * trackWidth) / 2;
+		double rightVel = targetVelocity * (2 - curvature * trackWidth) / 2;
 
 		double leftAcc = getAcceleration(leftVel, prevLeftVel, dt);
 		double rightAcc = getAcceleration(rightVel, prevRightVel, dt);

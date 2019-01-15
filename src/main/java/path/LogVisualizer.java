@@ -67,6 +67,7 @@ class LogVisualizer extends JFrame implements KeyListener {
         data.add(new ArrayList<>()); // idx 7: right motor
         data.add(new ArrayList<>()); // idx 8: closest point x
         data.add(new ArrayList<>()); // idx 9: closest point y
+        data.add(new ArrayList<>()); // idx 10: target veloctiy at closest point
 
         path.add(new ArrayList<>()); // idx 0: x pos
         path.add(new ArrayList<>()); // idx 1: y pos
@@ -112,8 +113,10 @@ class LogVisualizer extends JFrame implements KeyListener {
                 String[] msg = message.split(";");
                 double x = Double.parseDouble(msg[0]);
                 double y = Double.parseDouble(msg[1]);
+                double v = Double.parseDouble(msg[2]);
                 data.get(8).add(x);
                 data.get(9).add(y);
+                data.get(10).add(v);
             }
         }
 
@@ -197,6 +200,7 @@ class Draw extends JPanel {
         // idx 7: right motor
         // idx 8: closest point x
         // idx 9: closest point y
+        // idx 10: target veloctiy at closest point
 
         // path
         // idx 0: x pos
@@ -252,26 +256,19 @@ class Draw extends JPanel {
     }
 
     private void drawStats(Graphics g) {
-        // idx 0: robot x pos
-        // idx 1: robot y pos
-        // idx 2: heading
-        // idx 3: curvature
-        // idx 4: lookadheadPoint x pos
-        // idx 5: lookadheadPoint y pos
-        // idx 6: left motor
-        // idx 7: right motor
-        // idx 8: closest point x
-        // idx 9: closest point y
         g.setFont(new Font("Calibri", Font.PLAIN, 20));
         g.setColor(Color.black);
 
         int i = 1;
         int spacing = 25;
         int xPos = 50;
+
+        g.drawString("Index: " + String.valueOf(index), xPos, spacing * i++);
         g.drawString("Position: (" + getString(0) + ", " + getString(1) + ")", xPos, spacing * i++);
-        g.drawString("Direction: " + getString(2), xPos, spacing * i++);
+        g.drawString("Direction: " + String.valueOf(-(getData(2) - 90)), xPos, spacing * i++);
         g.drawString("Curvature: " + getString(3), xPos, spacing * i++);
-        g.drawString("Look Ahead Point: (" + getString(4) + ", " + getString(5) + ")", xPos, spacing * i++);
+        g.drawString("Target Vel: " + getString(10), xPos, spacing * i++);
+        g.drawString("LookAhead Point: (" + getString(4) + ", " + getString(5) + ")", xPos, spacing * i++);
         g.drawString("Closest Point: (" + getString(8) + ", " + getString(9) + ")", xPos, spacing * i++);
         g.drawString("Motors Left Right: (" + getString(6) + ", " + getString(7) + ")", xPos, spacing * i++);
     }
