@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "CodeLens (Launch) - LogVisualizer",
+      "request": "launch",
+      "mainClass": "path.LogVisualizer",
+      "projectName": "Restart Pure Pursuit"
+    },
+    {
+      "type": "java",
       "name": "CodeLens (Launch) - PathFollower",
       "request": "launch",
       "mainClass": "path.PathFollower",

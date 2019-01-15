@@ -59,12 +59,12 @@ class DrawArea extends JPanel {
 
 	@Override
 	protected void paintComponent(Graphics g) {
+
+		// set background
+		super.paintComponent(g);
+
 		// make stroke thicker
 		((Graphics2D) g).setStroke(new BasicStroke(7));
-
-		// I'm sure this is not how one would clear the background, but it works
-		g.setColor(Color.white);
-		g.fillRect(0, 0, 25535, 25535);
 
 		drawPath(g);
 
