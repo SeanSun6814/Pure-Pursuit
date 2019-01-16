@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class PathGenerator {
+import Obj.ExecTimer;
+import Obj.LogBase;
+
+public class PathGenerator extends LogBase {
 
 	public static void main(String[] args) {
 		PathGenerator p = new PathGenerator();
@@ -348,6 +351,9 @@ public class PathGenerator {
 	}
 
 	public Path calculate(Path nodeOnlyPath) {
+
+		ExecTimer execTimer = new ExecTimer();
+
 		double pathAlpha = 0.7, pathBeta = 0.3, pathTolerance = 0.0000001;
 
 		// Figure out how many nodes to inject
@@ -365,6 +371,8 @@ public class PathGenerator {
 		}
 		tagVelocity(smoothPath);
 		smoothPath.waypoints.remove(smoothPath.waypoints.size() - 1);
+
+		log("pathgeneratecalctime", execTimer.time());
 		return smoothPath;
 	}
 

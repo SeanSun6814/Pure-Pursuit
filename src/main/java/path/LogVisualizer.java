@@ -18,6 +18,8 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import Obj.ExecTimer;
+
 class LogVisualizer extends JFrame implements KeyListener {
     static LogVisualizer instance;
     Draw draw;
@@ -34,11 +36,12 @@ class LogVisualizer extends JFrame implements KeyListener {
     }
 
     public LogVisualizer() {
+        ExecTimer timer = new ExecTimer();
         loadFile();
-        System.out.println("Done loading file.");
+        System.out.println("Done loading file using " + timer.time() + " seconds.");
+        timer = new ExecTimer();
         parseData();
-        System.out.println("Done parsing data.");
-
+        System.out.println("Done parsing data using " + timer.time() + " seconds.");
         initWindow();
 
     }
@@ -180,7 +183,7 @@ class Draw extends JPanel {
             index = 0;
         else if (index > data.get(0).size() - 1)
             index = data.get(0).size() - 1;
-        System.out.println(deltaIndex);
+        // System.out.println(deltaIndex);
         this.repaint();
     }
 
@@ -279,7 +282,7 @@ class Draw extends JPanel {
     }
 
     private double getData(int type) {
-        System.out.println(index + ", " + type);
+        // System.out.println(index + ", " + type);
         return data.get(type).get(index);
     }
 

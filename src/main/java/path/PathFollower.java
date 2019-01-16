@@ -3,6 +3,7 @@ package path;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import Obj.ExecTimer;
 import Obj.LogBase;
 import Obj.MessageLevel;
 
@@ -464,6 +465,9 @@ public class PathFollower extends LogBase {
 	}
 
 	public DriveMotorState update(Point robotPos, double gyro, double dt) {
+
+		ExecTimer execTimer = new ExecTimer();
+
 		gyro = Math.toRadians(gyro + 90);
 
 		Waypoint waypoint = getInterpolatedWaypoint(robotPos);
@@ -521,6 +525,7 @@ public class PathFollower extends LogBase {
 			return new DriveMotorState(0, 0, 0, 0);
 		}
 
+		log("pathfollowcalctime", execTimer.time());
 		return new DriveMotorState(leftVel, leftAcc, rightVel, rightAcc);
 	}
 	//
