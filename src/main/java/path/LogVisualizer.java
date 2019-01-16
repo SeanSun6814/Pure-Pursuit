@@ -55,6 +55,7 @@ class LogVisualizer extends JFrame implements KeyListener {
         addKeyListener(this);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
+        this.setTitle("Pure Pursuit Log Visualizer");
         setVisible(true);
     }
 
@@ -189,7 +190,7 @@ class Draw extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-
+        setBackground(Color.white);
         super.paintComponent(g);
 
         drawPath(g);
