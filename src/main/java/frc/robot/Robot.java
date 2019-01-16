@@ -79,8 +79,9 @@ public class Robot extends TimedRobot {
     // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
     // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 2), new Waypoint(-2, 2),
     // new Waypoint(-2, 6.5))));
-    path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel, Arrays.asList(new Waypoint(0, 0),
-        new Waypoint(0, 4), new Waypoint(-2, 4), new Waypoint(-2, 2), new Waypoint(2, 2))));
+    path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
+        Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 4), new Waypoint(-2, 4), new Waypoint(-2, 2),
+            new Waypoint(0, 2), new Waypoint(0, 4), new Waypoint(-2, 4), new Waypoint(-2, 2), new Waypoint(2, 2))));
     // path = pathGenerator.calculate(new Path(spacing, maxVel, maxAcc, maxAngVel,
     // Arrays.asList(new Waypoint(0, 0), new Waypoint(0, 4), new Waypoint(-2, 4),
     // new Waypoint(-2, 0))));

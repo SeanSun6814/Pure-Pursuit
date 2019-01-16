@@ -45,15 +45,18 @@ public class PathFollower extends LogBase {
 
 	private int getClosestWaypointIndex(Point robotPos) {
 		// log(robotPos);
-		double minDistanceSoFar = distanceBetween(path.waypoints.get(0).p, robotPos);
+		double minDistanceSoFar = distanceBetween(path.waypoints.get(0).p, robotPos); // set the min distance to
+																						// "to-path-starting-point"
+																						// distance
 		int minDistanceIndexSoFar = 0;
-		
+
 		// don't look back, and also don't look too far ahead (avoids losing path at
 		// cross section)
-		int searchFrom = 0;
-		Math.max(lastClosestPointPathIndex - 1, 0);
-		int searchTo = path.waypoints.size() - 1;// Math.min(lastClosestPointPathIndex + searchLimit,
-													// path.waypoints.size());
+		int searchFrom = Math.max(lastClosestPointPathIndex - 1, 0);
+		int searchTo = Math.min(searchFrom + 5, path.waypoints.size()); // path.waypoints.size() - 1;//
+																		// Math.min(lastClosestPointPathIndex +
+																		// searchLimit,
+																		// path.waypoints.size());
 
 		for (int i = searchFrom; i < searchTo; i++) {
 			double distance = distanceBetween(path.waypoints.get(i).p, robotPos);
@@ -80,7 +83,7 @@ public class PathFollower extends LogBase {
 			// searchFrom = Math.max(lastLookAheadPointPathIndex - 1, 0);
 			// searchTo = Math.min(lastLookAheadPointPathIndex + searchLimit,
 			// path.waypoints.size() - 1);
-			searchFrom = Math.max(getClosestWaypointIndex(robotPos), 0);
+			searchFrom = Math.max(lastLookAheadPointPathIndex - 1, 0);// Math.max(getClosestWaypointIndex(robotPos), 0);
 			searchTo = path.waypoints.size() - 1;
 			mLookAheadDistance = lookAheadDistance;
 
