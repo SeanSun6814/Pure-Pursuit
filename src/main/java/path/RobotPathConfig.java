@@ -16,7 +16,8 @@ public class RobotPathConfig {
     public static RobotPathConfig getPracticeRobotConfig() {
         if (practiceRobotConfig == null) {
             practiceRobotConfig = new RobotPathConfig();
-            practiceRobotConfig.maxVel = Units.ft2m(1.4);// is this really that slow? TODO:
+            practiceRobotConfig.maxVel = Units.ft2m(1.4);// is this really that slow? TODO: fix all of these (changed
+                                                         // dt)
             practiceRobotConfig.maxAcc = Units.ft2m(0.3); // m/sec every sec
             practiceRobotConfig.spacing = Units.ft2m(1);
             practiceRobotConfig.maxAngVel = 1.5; // radians per second

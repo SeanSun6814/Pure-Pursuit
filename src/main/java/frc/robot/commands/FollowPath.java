@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.Drive;
 import path.DriveMotorState;
@@ -32,7 +33,7 @@ public class FollowPath extends CommandBase {
 
     Path path = null;
     RobotPathConfig config;
-    double dt = 0.05;
+    double prevTimestamp = 0;
 
     boolean reversed;
     boolean requestReset;
@@ -51,6 +52,7 @@ public class FollowPath extends CommandBase {
             log("requested reset, requested");
             drive.resetSensors();
         }
+        prevTimestamp = Timer.getFPGATimestamp();
     }
 
     private void initPath(List<Waypoint> waypoints) {
@@ -73,6 +75,9 @@ public class FollowPath extends CommandBase {
 
     @Override
     protected void execute() {
+        double dt = Timer.getFPGATimestamp() - prevTimestamp; // seconds
+        prevTimestamp = Timer.getFPGATimestamp();
+
         DriveMotorState driveMotorState = pathFollower.update(odometer.getPoint(), drive.getGyro(), dt);
 
         log("gyro", round(drive.getGyro()));
