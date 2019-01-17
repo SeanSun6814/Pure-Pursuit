@@ -1,5 +1,7 @@
-package Obj;
+package frc.robot.commands;
 
+import Obj.MessageLevel;
+import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Logger;
 
 /**
@@ -12,7 +14,7 @@ import frc.robot.Logger;
  * sender param
  */
 
-public abstract class LogBase {
+public abstract class CommandBase extends Command {
     private String systemName = "Default";
     private Logger logger = Logger.getInstance();
 

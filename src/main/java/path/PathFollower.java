@@ -23,6 +23,7 @@ public class PathFollower extends LogBase {
 	public boolean onPath = true;
 
 	double prevLeftVel = 0, prevRightVel = 0;
+	boolean reversed;
 
 	/// test vars
 
@@ -33,15 +34,205 @@ public class PathFollower extends LogBase {
 
 	}
 
-	public PathFollower(Path path, double lookAheadDistance, double trackWidth, double targetTolerance) {
+	public PathFollower(Path path, double lookAheadDistance, double trackWidth, double targetTolerance,
+			boolean reversed) {
 		setLogSenderName("PathFollower");
 		this.lookAheadDistance = lookAheadDistance;
 		this.trackWidth = trackWidth;
 		this.path = path;
 		this.targetTolerance = targetTolerance;
 		this.done = false;
+		this.reversed = reversed;
 		searchLimit = (int) (lookAheadDistance / path.spacing * 2) + 1; // leave 2x margin, and ceil it
 		log("searchLimit", searchLimit);
+	}
+
+	public DriveMotorState update(Point robotPos, double gyro, double dt) {
+		ExecTimer execTimer = new ExecTimer();
+
+		if (reversed) {
+			gyro += 180; // make it look like the robot is headed forwards, so the curvature calculation
+							// can go correctly
+		}
+
+		gyro = Math.toRadians(gyro + 90);
+
+		Waypoint waypoint = getInterpolatedWaypoint(robotPos);
+		log("closestwaypoint", waypoint);
+		double curvature = getCurvature(robotPos, gyro);
+
+		// double angularVel = waypoint.v * curvature; // w=v/r
+
+		// angularVel = clamp(angularVel, -path.maxAngleVel, path.maxAngleVel);
+		// curvature = angularVel / waypoint.v;
+
+		// curvature = clamp(curvature, -maxAngularVel, maxAngularVel);
+
+		// if we are on the path, then the target velocity is accurate, however, when we
+		// are slightly off the path or getting back onto the path, we shouldn't use the
+		// path's velocity. In other words, when we are not exactly on the path, we
+		// could have a different curvature than the pre-generated curvature. If our
+		// runtime curvature is big, but our path here happens to be straight, we may be
+		// going through a small turn on great speeds.
+		// The solution to this is to use the runtime curvature (just found) to
+		// calculate the max velocity for desired AngAccel. But we cannot ignore the
+		// pre-slow-down that our pre-generated velocities give us. To satisfy both, we
+		// take the minimum of the two.
+
+		// If we are not on the path, however, we don't need to think about the path's
+		// velocity at all since the small turns don't apply, we can just simply go as
+		// fast as our runtime turning allows.
+
+		// current max velocity could be calculated:
+		// angVel = linearVel / radius, curvature = 1 / radius
+		// linearVel = angVel / curvature
+		double targetVelocity;
+		if (onPath) {
+			targetVelocity = Math.min(waypoint.v, path.maxAngleVel / Math.abs(curvature));
+		} else {
+			targetVelocity = path.maxAngleVel / Math.abs(curvature);
+		}
+
+		double leftVel = targetVelocity * (2 + curvature * trackWidth) / 2;
+		double rightVel = targetVelocity * (2 - curvature * trackWidth) / 2;
+
+		double leftAcc = getAcceleration(leftVel, prevLeftVel, dt);
+		double rightAcc = getAcceleration(rightVel, prevRightVel, dt);
+
+		if (reversed) {
+			double newleftVel = -rightVel;
+			double newrightVel = -leftVel;
+			double newleftAcc = -rightAcc;
+			double newrightAcc = -leftAcc;
+
+			rightVel = newrightVel;
+			leftVel = newleftVel;
+			rightAcc = newrightAcc;
+			leftAcc = newleftAcc;
+		}
+
+		log("motoroutput", leftVel + "; " + rightVel);
+
+		prevLeftVel = leftVel;
+		prevRightVel = rightVel;
+
+		if (distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p) <= targetTolerance) {
+			done = true;
+			log("FINISHED PATH!!!!!!!!!!!!");
+		}
+
+		log("pathfollowcalctime", execTimer.time());
+
+		if (done) {
+			return new DriveMotorState(0, 0, 0, 0);
+		}
+		return new DriveMotorState(leftVel, leftAcc, rightVel, rightAcc);
+	}
+
+	private Waypoint getInterpolatedWaypoint(Point robotPos) {
+
+		// get the two closest points on path to robot
+		int index1 = getClosestWaypointIndex(robotPos);
+		int index2 = findClosestWaypointNeighbor(index1, robotPos);
+		// log("getting interpolated closest Waypoint: (index1, index2)");
+		// log(index1);
+		// log(index2);
+		// checked index 1,2 are correct
+
+		// get the distance from robot to those two points (index1, index2)
+		double d1 = distanceBetween(robotPos, path.waypoints.get(index1).p);
+		double d2 = distanceBetween(robotPos, path.waypoints.get(index2).p);
+		// log("getting interpolated closest Waypoint: (dist1, dist2)");
+		// log(d1);
+		// log(d2);
+
+		// a vector representing the distance between those two points (index1, index2)
+		Vector deltaVector = new Vector(path.waypoints.get(index1).p, path.waypoints.get(index2).p);
+
+		// scaler distance between those two points
+		double d = deltaVector.length();
+
+		// the scaler distance from index1 ->closest point (which is the intercept of
+		// the path line and the perpendicular line of the path which also goes through
+		// the robotPos) (see diagram: marked "x")
+		double scale = (d * d + d1 * d1 - d2 * d2) / (2 * d);
+
+		// this is "x" with direction AND magnitude
+		Vector xVector = deltaVector.scale(scale / d);
+
+		// because x has the same ratio of robotPos (relative to index1 and index2),
+		// we now only need to find "x"'s ratio; this is eaiser because "x" is on the
+		// path line
+		double ratio = xVector.length() / d;
+
+		// the purpose of all of this is to find the velocity in between two known
+		// waypoints (index1, index2), and this is done linearly.
+		// therefore: velocity = base velocity + deltaVelocity
+		// velocity = idx1.v + v.diff * ratio (diff = idx2.v-idx1.v)
+		double vel = path.waypoints.get(index1).v
+				+ ratio * (path.waypoints.get(index1).v - path.waypoints.get(index2).v);
+		// log("getting interpolated closest Waypoint: (ratio)");
+		// log(ratio);
+
+		// finally put all that info into a waypoint
+		// the position of that point = as base position + deltaPosition
+		// so position = idx1.position + xVector
+		Waypoint newWaypoint = new Waypoint(
+				new Point(path.waypoints.get(index1).p.x + xVector.dx, path.waypoints.get(index1).p.y + xVector.dy),
+				vel);
+		// // uh oh, the point is actually off our segment. because this is calculated
+		// // based on the formula of this segment, it assumes this segment extends to
+		// // infinity, however, we need to check if the perpendicular line actually
+		// lands
+		// // on our limited segment
+		// if (ratio > 1) {
+		// // there's nothing we can do now, so lets return the starting point of the
+		// path
+		// newWaypoint = path.waypoints.get(0).copy();
+		// }
+		// this is the distance from robotPos to closest point on path
+		Vector distance = new Vector(robotPos, newWaypoint.p);
+		if (distance.length() < lookAheadDistance) {
+			onPath = true;
+		} else {
+			onPath = false;
+		}
+		log("ONPATH = " + onPath);
+
+		// log("getting interpolated closest Waypoint: (newWaypoint)");
+		// log(newWaypoint);
+		closestpoint = newWaypoint;
+		return newWaypoint;
+	}
+
+	public double getCurvature(Point robotPos, double gyro) {// curvatureOfArcFromRobotToLookAheadPoint
+
+		gyro = Math.PI - gyro;
+
+		Point lookAheadPoint = lookAheadPoint(robotPos);
+		log("robotpos", robotPos);
+		log("lookaheadpoint", lookAheadPoint);
+		double horizontalDistance2LookAheadPoint;
+		double a = -Math.tan(gyro);
+		double b = 1;
+		double c = Math.tan(gyro) * robotPos.x - robotPos.y;
+
+		horizontalDistance2LookAheadPoint = Math.abs(a * lookAheadPoint.x + b * lookAheadPoint.y + c)
+				/ (Math.sqrt(a * a + b * b));
+		log("horizontalDistance2LookAheadPoint: " + horizontalDistance2LookAheadPoint);
+
+		double side = Math.signum(
+				Math.sin(gyro) * (lookAheadPoint.x - robotPos.x) - Math.cos(gyro) * (lookAheadPoint.y - robotPos.y));
+
+		// see if point b is above or under r
+		// side *= Math.signum(Math.sin(gyro));
+
+		log("side: " + side);
+
+		double curvature = 2 * side * horizontalDistance2LookAheadPoint / lookAheadDistance / lookAheadDistance;
+
+		log("curvature", curvature);
+		return curvature;
 	}
 
 	private int getClosestWaypointIndex(Point robotPos) {
@@ -144,41 +335,6 @@ public class PathFollower extends LogBase {
 			return path.waypoints.get(Math.max(index1, index2)).p;
 		}
 	}
-	// private boolean lineCircleInterception(Point startOfLine, Point endOfLine,
-	// Point byRefReturnPoint, Point robotPos, double radius) {
-	//
-	// Vector d = new Vector(endOfLine.subtract(startOfLine));
-	// Vector f = new Vector(startOfLine.subtract(robotPos));
-	//
-	// double a = d.dotProduct(d);
-	// double b = 2 * f.dotProduct(d);
-	// double c = f.dotProduct(f) - radius * radius;
-	// boolean intercept = false;
-	// double t = 0;
-	// double discriminant = b * b - 4 * a * c;
-	//
-	// if (discriminant >= 0) {
-	// discriminant = Math.sqrt(discriminant);
-	// double t1 = (-b - discriminant) / (2 * a);
-	// double t2 = (-b + discriminant) / (2 * a);
-	// if (t1 >= 0 && t1 <= 1) {
-	// intercept = true;
-	// t = t1;
-	// } else if (t2 >= 0 && t2 <= 1) {
-	// intercept = true;
-	// t = t2;
-	// }
-	// log("t1, t2: " + t1 + ", " + t2);
-	// }
-	// if (intercept) {
-	// Vector p = d.scale(t);
-	// byRefReturnPoint.set(startOfLine.x + p.dx, startOfLine.y + p.dy);
-	// return true;
-	// } else {
-	// byRefReturnPoint.set(0, 0);
-	// return false;
-	// }
-	// }
 
 	private boolean lineCircleInterception(Point startOfLine, Point endOfLine, Point byRefReturnPoint, Point robotPos,
 			double radius) {
@@ -270,105 +426,8 @@ public class PathFollower extends LogBase {
 		}
 	}
 
-	// private boolean lineCircleInterception(Point startOfLine, Point endOfLine,
-	// Point byRefReturnPoint, Point robotPos,
-	// double radius) {
-	//
-	// log("radius" + radius);
-	//
-	// Vector d = new Vector(endOfLine.subtract(startOfLine));
-	// Vector f = new Vector(startOfLine.subtract(robotPos));
-	//
-	// double a = d.dotProduct(d);
-	// double b = 2 * f.dotProduct(d);
-	// double c = f.dotProduct(f) - radius * radius;
-	// boolean t1Intercept = false;
-	// boolean t2Intercept = false;
-	//
-	//// double t = 0;
-	// double discriminant = b * b - 4 * a * c;
-	// double t1 = (-b - discriminant) / (2 * a);
-	// double t2 = (-b + discriminant) / (2 * a);
-	// if (discriminant >= 0) {
-	// discriminant = Math.sqrt(discriminant);
-	//
-	// if (t1 >= 0 && t1 <= 1) {
-	// t1Intercept = true;
-	//// t = t1;
-	// }
-	// if (t2 >= 0 && t2 <= 1) {
-	// t2Intercept = true;
-	//// t = t2;
-	// }
-	// }
-	// if (t1Intercept == true && t2Intercept == true) {
-	// log("cool, we've got two solutions");
-	// Vector v1 = d.scale(t1);
-	// Point p1 = new Point(startOfLine.x + v1.dx, startOfLine.y + v1.dy);
-	// int index11 = getClosestWaypointIndex(p1);
-	// int index12 = findClosestWaypointNeighbor(index11, p1);
-	//
-	// Vector v2 = d.scale(t2);
-	// Point p2 = new Point(startOfLine.x + v2.dx, startOfLine.y + v2.dy);
-	//
-	// int index21 = getClosestWaypointIndex(p2);
-	// int index22 = findClosestWaypointNeighbor(index21, p2);
-	//
-	// log("index1= " + Math.max(index11, index12) + " index2= " + Math.max(index21,
-	// index22));
-	//
-	// if (Math.max(index11, index12) > Math.max(index21, index22)) {
-	// byRefReturnPoint.set(p1.x, p1.y);
-	// } else {
-	// byRefReturnPoint.set(p2.x, p2.y);
-	// }
-	// } else if (t1Intercept == true && t2Intercept == false) {
-	// Vector v1 = d.scale(t1);
-	// Point p1 = new Point(startOfLine.x + v1.dx, startOfLine.y + v1.dy);
-	// byRefReturnPoint.set(p1.x, p1.y);
-	// } else if (t1Intercept == false && t2Intercept == true) {
-	// Vector v2 = d.scale(t2);
-	// Point p2 = new Point(startOfLine.x + v2.dx, startOfLine.y + v2.dy);
-	// byRefReturnPoint.set(p2.x, p2.y);
-	// } else if (t1Intercept == false && t2Intercept == false) {
-	// byRefReturnPoint.set(0, 0);
-	// return false;
-	// }
-	// return true;
-	// }
-
 	private double distanceBetween(Point a, Point b) {
 		return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
-	}
-
-	public double getCurvature(Point robotPos, double gyro) {// curvatureOfArcFromRobotToLookAheadPoint
-
-		gyro = Math.PI - gyro;
-
-		Point lookAheadPoint = lookAheadPoint(robotPos);
-		log("robotpos", robotPos);
-		log("lookaheadpoint", lookAheadPoint);
-		double horizontalDistance2LookAheadPoint;
-		double a = -Math.tan(gyro);
-		double b = 1;
-		double c = Math.tan(gyro) * robotPos.x - robotPos.y;
-
-		horizontalDistance2LookAheadPoint = Math.abs(a * lookAheadPoint.x + b * lookAheadPoint.y + c)
-				/ (Math.sqrt(a * a + b * b));
-		log("horizontalDistance2LookAheadPoint: " + horizontalDistance2LookAheadPoint);
-
-		double side = Math.signum(
-				Math.sin(gyro) * (lookAheadPoint.x - robotPos.x) - Math.cos(gyro) * (lookAheadPoint.y - robotPos.y));
-
-		// see if point b is above or under r
-		// side *= Math.signum(Math.sin(gyro));
-
-		log("side: " + side);
-
-		double curvature = 2 * side * horizontalDistance2LookAheadPoint / lookAheadDistance / lookAheadDistance;
-
-		log("curvature", curvature);
-		return curvature;
 	}
 
 	private int findClosestWaypointNeighbor(int index, Point robotPos) {
@@ -384,155 +443,9 @@ public class PathFollower extends LogBase {
 		return index + 1;
 	}
 
-	private Waypoint getInterpolatedWaypoint(Point robotPos) {
-
-		// get the two closest points on path to robot
-		int index1 = getClosestWaypointIndex(robotPos);
-		int index2 = findClosestWaypointNeighbor(index1, robotPos);
-		// log("getting interpolated closest Waypoint: (index1, index2)");
-		// log(index1);
-		// log(index2);
-		// checked index 1,2 are correct
-
-		// get the distance from robot to those two points (index1, index2)
-		double d1 = distanceBetween(robotPos, path.waypoints.get(index1).p);
-		double d2 = distanceBetween(robotPos, path.waypoints.get(index2).p);
-		// log("getting interpolated closest Waypoint: (dist1, dist2)");
-		// log(d1);
-		// log(d2);
-
-		// a vector representing the distance between those two points (index1, index2)
-		Vector deltaVector = new Vector(path.waypoints.get(index1).p, path.waypoints.get(index2).p);
-
-		// scaler distance between those two points
-		double d = deltaVector.length();
-
-		// the scaler distance from index1 ->closest point (which is the intercept of
-		// the path line and the perpendicular line of the path which also goes through
-		// the robotPos) (see diagram: marked "x")
-		double scale = (d * d + d1 * d1 - d2 * d2) / (2 * d);
-
-		// this is "x" with direction AND magnitude
-		Vector xVector = deltaVector.scale(scale / d);
-
-		// because x has the same ratio of robotPos (relative to index1 and index2),
-		// we now only need to find "x"'s ratio; this is eaiser because "x" is on the
-		// path line
-		double ratio = xVector.length() / d;
-
-		// the purpose of all of this is to find the velocity in between two known
-		// waypoints (index1, index2), and this is done linearly.
-		// therefore: velocity = base velocity + deltaVelocity
-		// velocity = idx1.v + v.diff * ratio (diff = idx2.v-idx1.v)
-		double vel = path.waypoints.get(index1).v
-				+ ratio * (path.waypoints.get(index1).v - path.waypoints.get(index2).v);
-		// log("getting interpolated closest Waypoint: (ratio)");
-		// log(ratio);
-
-		// finally put all that info into a waypoint
-		// the position of that point = as base position + deltaPosition
-		// so position = idx1.position + xVector
-		Waypoint newWaypoint = new Waypoint(
-				new Point(path.waypoints.get(index1).p.x + xVector.dx, path.waypoints.get(index1).p.y + xVector.dy),
-				vel);
-		// // uh oh, the point is actually off our segment. because this is calculated
-		// // based on the formula of this segment, it assumes this segment extends to
-		// // infinity, however, we need to check if the perpendicular line actually
-		// lands
-		// // on our limited segment
-		// if (ratio > 1) {
-		// // there's nothing we can do now, so lets return the starting point of the
-		// path
-		// newWaypoint = path.waypoints.get(0).copy();
-		// }
-		// this is the distance from robotPos to closest point on path
-		Vector distance = new Vector(robotPos, newWaypoint.p);
-		if (distance.length() < lookAheadDistance) {
-			onPath = true;
-		} else {
-			onPath = false;
-		}
-		log("ONPATH = " + onPath);
-
-		// log("getting interpolated closest Waypoint: (newWaypoint)");
-		// log(newWaypoint);
-		closestpoint = newWaypoint;
-		return newWaypoint;
-	}
-
 	private double getAcceleration(double vel, double prevVel, double dt) {
 		return (vel - prevVel) / (dt / 1000);
 	}
-
-	public DriveMotorState update(Point robotPos, double gyro, double dt) {
-
-		ExecTimer execTimer = new ExecTimer();
-
-		gyro = Math.toRadians(gyro + 90);
-
-		Waypoint waypoint = getInterpolatedWaypoint(robotPos);
-		log("closestwaypoint", waypoint);
-		double curvature = getCurvature(robotPos, gyro);
-
-		// double angularVel = waypoint.v * curvature; // w=v/r
-
-		// angularVel = clamp(angularVel, -path.maxAngleVel, path.maxAngleVel);
-		// curvature = angularVel / waypoint.v;
-
-		// curvature = clamp(curvature, -maxAngularVel, maxAngularVel);
-
-		// if we are on the path, then the target velocity is accurate, however, when we
-		// are slightly off the path or getting back onto the path, we shouldn't use the
-		// path's velocity. In other words, when we are not exactly on the path, we
-		// could have a different curvature than the pre-generated curvature. If our
-		// runtime curvature is big, but our path here happens to be straight, we may be
-		// going through a small turn on great speeds.
-		// The solution to this is to use the runtime curvature (just found) to
-		// calculate the max velocity for desired AngAccel. But we cannot ignore the
-		// pre-slow-down that our pre-generated velocities give us. To satisfy both, we
-		// take the minimum of the two.
-
-		// If we are not on the path, however, we don't need to think about the path's
-		// velocity at all since the small turns don't apply, we can just simply go as
-		// fast as our runtime turning allows.
-
-		// current max velocity could be calculated:
-		// angVel = linearVel / radius, curvature = 1 / radius
-		// linearVel = angVel / curvature
-		double targetVelocity;
-		if (onPath) {
-			targetVelocity = Math.min(waypoint.v, path.maxAngleVel / Math.abs(curvature));
-		} else {
-			targetVelocity = path.maxAngleVel / Math.abs(curvature);
-		}
-
-		double leftVel = targetVelocity * (2 + curvature * trackWidth) / 2;
-		double rightVel = targetVelocity * (2 - curvature * trackWidth) / 2;
-
-		double leftAcc = getAcceleration(leftVel, prevLeftVel, dt);
-		double rightAcc = getAcceleration(rightVel, prevRightVel, dt);
-
-		log("motoroutput", leftVel + "; " + rightVel);
-
-		prevLeftVel = leftVel;
-		prevRightVel = rightVel;
-
-		if (distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p) <= targetTolerance) {
-			done = true;
-			log("FINISHED PATH!!!!!!!!!!!!");
-		}
-		if (done) {
-			return new DriveMotorState(0, 0, 0, 0);
-		}
-
-		log("pathfollowcalctime", execTimer.time());
-		return new DriveMotorState(leftVel, leftAcc, rightVel, rightAcc);
-	}
-	//
-	// private double clampValueWithDerivative(double prevVal, double val, double
-	// maxDeriv) {
-	//
-	// }
 
 	private double clamp(double x, double min, double max) {
 		if (x < min)

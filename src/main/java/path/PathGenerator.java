@@ -41,13 +41,30 @@ public class PathGenerator extends LogBase {
 
 	}
 
-	public Path generate(double smooth, double tolerance, Path path) {
-		Path injected = generatePath(path);
-		System.out.println("beginning smmoth path");
-		Path smoothed = mSmoother(injected, smooth, tolerance);
-		System.out.println("finished smmoth path");
-		tagVelocity(smoothed);
-		return smoothed;
+	public Path calculate(Path nodeOnlyPath) {
+
+		ExecTimer execTimer = new ExecTimer();
+
+		double pathAlpha = 0.7, pathBeta = 0.3, pathTolerance = 0.0000001;
+
+		// Figure out how many nodes to inject
+		tagInjectionCounter2Steps(nodeOnlyPath);
+
+		Path smoothPath = new Path(nodeOnlyPath);
+		smoothPath.waypoints = new ArrayList<Waypoint>();
+
+		smoothPath.waypoints = inject(nodeOnlyPath, nodeOnlyPath.injectionSteps[0]);
+		smoothPath.waypoints = smoother(smoothPath, pathAlpha, pathBeta, pathTolerance);
+		// iteratively inject and smooth the path
+		for (int i = 1; i < nodeOnlyPath.injectionSteps.length; i++) {
+			smoothPath.waypoints = inject(smoothPath, nodeOnlyPath.injectionSteps[i]);
+			smoothPath.waypoints = smoother(smoothPath, 0.1, 0.3, 0.0000001);
+		}
+		tagVelocity(smoothPath);
+		smoothPath.waypoints.remove(smoothPath.waypoints.size() - 1);
+
+		log("pathgeneratecalctime", execTimer.time());
+		return smoothPath;
 	}
 
 	public List<Waypoint> inject(Path path, int numToInject) {
@@ -91,23 +108,6 @@ public class PathGenerator extends LogBase {
 		return array2Waypoints(morePoints);
 	}
 
-	public double[][] waypoints2Array(List<Waypoint> waypoints) {
-		double[][] arr = new double[waypoints.size()][2];
-		for (int i = 0; i < waypoints.size(); i++) {
-			arr[i][0] = waypoints.get(i).p.x;
-			arr[i][1] = waypoints.get(i).p.y;
-		}
-		return arr;
-	}
-
-	public List<Waypoint> array2Waypoints(double[][] arr) {
-		List<Waypoint> waypoints = new ArrayList<Waypoint>();
-		for (int i = 0; i < arr.length; i++) {
-			waypoints.add(new Waypoint(arr[i][0], arr[i][1]));
-		}
-		return waypoints;
-	}
-
 	/**
 	 * Optimization algorithm, which optimizes the data points in path to create a
 	 * smooth trajectory. This optimization uses gradient descent. While unlikely,
@@ -142,138 +142,6 @@ public class PathGenerator extends LogBase {
 		}
 
 		return array2Waypoints(newPath);
-	}
-
-	//
-	// public Path processEachSegment(Path segment) {
-	//
-	// injectPath(segment, 0);
-	// smoother(smoothPath, 0.1, 0.3, 0.0000001);
-	//
-	// for (int i = 0; i < segment.waypoints.size(); i++) {
-	//
-	// }
-	// totalWaypoints.add(waypoints.get(waypoints.size() - 1));
-	//
-	// Path returnPath = new Path(path);
-	// returnPath.waypoints = totalWaypoints;
-	// return returnPath;
-	// }
-	//
-	//
-	//
-	// public Path injectPath(Path path, int index) {
-	//// this function injects (fills in) points into the original path to reach
-	// desired accuracy (spacing)
-	//
-	//
-	// List<Waypoint> waypoints = path.waypoints;
-	// double spacing = path.spacing;
-	//
-	// List<Waypoint> totalWaypoints = new ArrayList<Waypoint>();
-	//
-	// //fill in
-	//
-	// for (int i = 0; i < waypoints.size() - 1; i++) {
-	//
-	// //total distance between the two waypoints
-	// double distance = distanceBetween(waypoints.get(i).p, waypoints.get(i +
-	// 1).p);
-	//
-	// //this is the interval that we want to achieve (the distance between two
-	// injections)
-	// Vector normalizedVector = new Vector(waypoints.get(i).p, waypoints.get(i +
-	// 1).p).normalize().scale(spacing);
-	//
-	// //so we need... how many injection points?
-	// int numOfWaypoints = (int) Math.floor(distance / spacing) + 1;
-	//
-	//
-	// for (int j = 0; j < numOfWaypoints; j++) {
-	// totalWaypoints.add(new Waypoint(new Point(waypoints.get(i).p.x + j *
-	// normalizedVector.dx,
-	// waypoints.get(i).p.y + j * normalizedVector.dy), vel)); // TODO: velocity?
-	// }
-	// }
-	// totalWaypoints.add(waypoints.get(waypoints.size() - 1));
-	//
-	// Path returnPath = new Path(path);
-	// returnPath.waypoints = totalWaypoints;
-	// return returnPath;
-	// }
-
-	@Deprecated
-	public Path generatePath(Path path) {
-
-		List<Waypoint> waypoints = path.waypoints;
-		double spacing = path.spacing;
-
-		List<Waypoint> totalWaypoints = new ArrayList<Waypoint>();
-
-		for (int i = 0; i < waypoints.size() - 1; i++) {
-			double distance = distanceBetween(waypoints.get(i).p, waypoints.get(i + 1).p);
-			Vector normalizedVector = new Vector(waypoints.get(i).p, waypoints.get(i + 1).p).normalize().scale(spacing);
-			int numOfWaypoints = (int) Math.floor(distance / spacing) + 1;
-			for (int j = 0; j < numOfWaypoints; j++) {
-				double vel = waypoints.get(i).v
-						+ j * (spacing / distance) * (waypoints.get(i + 1).v - waypoints.get(i).v);
-				// vel at between two points: lowerPoint+ j*(unitstep*difference); step=
-				// difference *
-
-				totalWaypoints.add(new Waypoint(new Point(waypoints.get(i).p.x + j * normalizedVector.dx,
-						waypoints.get(i).p.y + j * normalizedVector.dy), vel)); // TODO: velocity?
-			}
-		}
-		totalWaypoints.add(waypoints.get(waypoints.size() - 1));
-
-		Path returnPath = new Path(path);
-		returnPath.waypoints = totalWaypoints;
-		return returnPath;
-	}
-
-	@Deprecated
-	public Path mSmoother(Path originalPath, double weight_smooth, double tolerance) {
-
-		double weight_data = 1 - weight_smooth;
-
-		List<Waypoint> path = originalPath.waypoints;
-		List<Waypoint> newPath = originalPath.copy().waypoints;
-
-		double change = tolerance;
-		while (change >= tolerance) {
-			change = 0.0;
-			for (int i = 1; i < path.size() - 1; i++) {// 1 to size()-1: don't stretch first and last point as they
-														// should not move
-				double aux = newPath.get(i).p.x;
-				newPath.get(i).p.x += weight_data * (path.get(i).p.x - newPath.get(i).p.x) + weight_smooth
-						* (newPath.get(i - 1).p.x + newPath.get(i - 1).p.x - (2.0 * newPath.get(i).p.x));
-
-				change += Math.abs(aux - newPath.get(i).p.x);
-
-				aux = newPath.get(i).p.y;
-				newPath.get(i).p.y += weight_data * (path.get(i).p.y - newPath.get(i).p.y) + weight_smooth
-						* (newPath.get(i - 1).p.y + newPath.get(i - 1).p.y - (2.0 * newPath.get(i).p.y));
-
-				change += Math.abs(aux - newPath.get(i).p.y);
-
-				// double aux = newPath[i][j];
-				// newPath[i][j] += weight_data * (path[i][j] - newPath[i][j])
-				// + weight_smooth * (newPath[i - 1][j] + newPath[i + 1][j] - (2.0 *
-				// newPath[i][j]));
-				// change += Math.abs(aux - newPath[i][j]);
-			}
-		}
-		Path returnPath = new Path(originalPath);
-		returnPath.waypoints = newPath;
-		return returnPath;
-	}
-
-	public double getPathDistance(Path path) {
-		double distance = 0;
-		for (int i = 0; i < path.waypoints.size() - 1; i++) {
-			distance += distanceBetween(path.waypoints.get(i).p, path.waypoints.get(i + 1).p);
-		}
-		return distance;
 	}
 
 	public void tagInjectionCounter2Steps(Path nodeOnlyPath) {
@@ -350,32 +218,6 @@ public class PathGenerator extends LogBase {
 		nodeOnlyPath.numFinalPoints = numFinalPoints;
 	}
 
-	public Path calculate(Path nodeOnlyPath) {
-
-		ExecTimer execTimer = new ExecTimer();
-
-		double pathAlpha = 0.7, pathBeta = 0.3, pathTolerance = 0.0000001;
-
-		// Figure out how many nodes to inject
-		tagInjectionCounter2Steps(nodeOnlyPath);
-
-		Path smoothPath = new Path(nodeOnlyPath);
-		smoothPath.waypoints = new ArrayList<Waypoint>();
-
-		smoothPath.waypoints = inject(nodeOnlyPath, nodeOnlyPath.injectionSteps[0]);
-		smoothPath.waypoints = smoother(smoothPath, pathAlpha, pathBeta, pathTolerance);
-		// iteratively inject and smooth the path
-		for (int i = 1; i < nodeOnlyPath.injectionSteps.length; i++) {
-			smoothPath.waypoints = inject(smoothPath, nodeOnlyPath.injectionSteps[i]);
-			smoothPath.waypoints = smoother(smoothPath, 0.1, 0.3, 0.0000001);
-		}
-		tagVelocity(smoothPath);
-		smoothPath.waypoints.remove(smoothPath.waypoints.size() - 1);
-
-		log("pathgeneratecalctime", execTimer.time());
-		return smoothPath;
-	}
-
 	public void tagVelocity(Path path) {
 
 		List<Waypoint> waypoints = path.waypoints;
@@ -436,35 +278,109 @@ public class PathGenerator extends LogBase {
 		return Math.sqrt(velocity0 * velocity0 + 2 * timeAccel * distance);
 	}
 
-	// public double[] trainPolyFit(Path path, int degree) {
-	//
-	// PolynomialCurveFitter polynomialCurveFitter =
-	// PolynomialCurveFitter.create(degree);
-	//
-	// ArrayList<WeightedObservedPoint> weightedObservedPoints = new
-	// ArrayList<WeightedObservedPoint>();
-	//
-	// for (int i = 0; i < path.waypoints.size(); i++) {
-	//
-	// WeightedObservedPoint weightedObservedPoint = new WeightedObservedPoint(1,
-	// path.waypoints.get(i).p.x,
-	// path.waypoints.get(i).p.y);
-	//
-	// weightedObservedPoints.add(weightedObservedPoint);
-	//
-	// }
-	//
-	// double[] result = polynomialCurveFitter.fit(weightedObservedPoints);
-	//
-	// for (int i = 0; i < result.length; i++) {
-	// System.out.println(result[i]);
-	// }
-	//
-	// return result;
-	//
-	// }
-
 	private double distanceBetween(Point a, Point b) {
 		return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 	}
+
+	public double[][] waypoints2Array(List<Waypoint> waypoints) {
+		double[][] arr = new double[waypoints.size()][2];
+		for (int i = 0; i < waypoints.size(); i++) {
+			arr[i][0] = waypoints.get(i).p.x;
+			arr[i][1] = waypoints.get(i).p.y;
+		}
+		return arr;
+	}
+
+	public List<Waypoint> array2Waypoints(double[][] arr) {
+		List<Waypoint> waypoints = new ArrayList<Waypoint>();
+		for (int i = 0; i < arr.length; i++) {
+			waypoints.add(new Waypoint(arr[i][0], arr[i][1]));
+		}
+		return waypoints;
+	}
+
+	public double getPathDistance(Path path) {
+		double distance = 0;
+		for (int i = 0; i < path.waypoints.size() - 1; i++) {
+			distance += distanceBetween(path.waypoints.get(i).p, path.waypoints.get(i + 1).p);
+		}
+		return distance;
+	}
+
+	@Deprecated
+	public Path generate(double smooth, double tolerance, Path path) {
+		Path injected = generatePath(path);
+		System.out.println("beginning smmoth path");
+		Path smoothed = mSmoother(injected, smooth, tolerance);
+		System.out.println("finished smmoth path");
+		tagVelocity(smoothed);
+		return smoothed;
+	}
+
+	@Deprecated
+	public Path generatePath(Path path) {
+
+		List<Waypoint> waypoints = path.waypoints;
+		double spacing = path.spacing;
+
+		List<Waypoint> totalWaypoints = new ArrayList<Waypoint>();
+
+		for (int i = 0; i < waypoints.size() - 1; i++) {
+			double distance = distanceBetween(waypoints.get(i).p, waypoints.get(i + 1).p);
+			Vector normalizedVector = new Vector(waypoints.get(i).p, waypoints.get(i + 1).p).normalize().scale(spacing);
+			int numOfWaypoints = (int) Math.floor(distance / spacing) + 1;
+			for (int j = 0; j < numOfWaypoints; j++) {
+				double vel = waypoints.get(i).v
+						+ j * (spacing / distance) * (waypoints.get(i + 1).v - waypoints.get(i).v);
+				// vel at between two points: lowerPoint+ j*(unitstep*difference); step=
+				// difference *
+
+				totalWaypoints.add(new Waypoint(new Point(waypoints.get(i).p.x + j * normalizedVector.dx,
+						waypoints.get(i).p.y + j * normalizedVector.dy), vel)); // TODO: velocity?
+			}
+		}
+		totalWaypoints.add(waypoints.get(waypoints.size() - 1));
+
+		Path returnPath = new Path(path);
+		returnPath.waypoints = totalWaypoints;
+		return returnPath;
+	}
+
+	@Deprecated
+	public Path mSmoother(Path originalPath, double weight_smooth, double tolerance) {
+
+		double weight_data = 1 - weight_smooth;
+
+		List<Waypoint> path = originalPath.waypoints;
+		List<Waypoint> newPath = originalPath.copy().waypoints;
+
+		double change = tolerance;
+		while (change >= tolerance) {
+			change = 0.0;
+			for (int i = 1; i < path.size() - 1; i++) {// 1 to size()-1: don't stretch first and last point as they
+														// should not move
+				double aux = newPath.get(i).p.x;
+				newPath.get(i).p.x += weight_data * (path.get(i).p.x - newPath.get(i).p.x) + weight_smooth
+						* (newPath.get(i - 1).p.x + newPath.get(i - 1).p.x - (2.0 * newPath.get(i).p.x));
+
+				change += Math.abs(aux - newPath.get(i).p.x);
+
+				aux = newPath.get(i).p.y;
+				newPath.get(i).p.y += weight_data * (path.get(i).p.y - newPath.get(i).p.y) + weight_smooth
+						* (newPath.get(i - 1).p.y + newPath.get(i - 1).p.y - (2.0 * newPath.get(i).p.y));
+
+				change += Math.abs(aux - newPath.get(i).p.y);
+
+				// double aux = newPath[i][j];
+				// newPath[i][j] += weight_data * (path[i][j] - newPath[i][j])
+				// + weight_smooth * (newPath[i - 1][j] + newPath[i + 1][j] - (2.0 *
+				// newPath[i][j]));
+				// change += Math.abs(aux - newPath[i][j]);
+			}
+		}
+		Path returnPath = new Path(originalPath);
+		returnPath.waypoints = newPath;
+		return returnPath;
+	}
+
 }

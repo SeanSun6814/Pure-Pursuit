@@ -24,7 +24,8 @@ class LogVisualizer extends JFrame implements KeyListener {
     static LogVisualizer instance;
     Draw draw;
 
-    final String fileName = "C:\\Users\\Sean\\Desktop\\LogOverlap.csv";
+    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogBACK.csv";
+    final String fileName = "C:\\Users\\Sean\\Desktop\\LogC.csv";
 
     List<String[]> file = new ArrayList<>();
 
@@ -72,6 +73,7 @@ class LogVisualizer extends JFrame implements KeyListener {
         data.add(new ArrayList<>()); // idx 8: closest point x
         data.add(new ArrayList<>()); // idx 9: closest point y
         data.add(new ArrayList<>()); // idx 10: target veloctiy at closest point
+        data.add(new ArrayList<>()); // idx 11: elapsed exec time
 
         path.add(new ArrayList<>()); // idx 0: x pos
         path.add(new ArrayList<>()); // idx 1: y pos
@@ -126,6 +128,9 @@ class LogVisualizer extends JFrame implements KeyListener {
                 data.get(8).add(x);
                 data.get(9).add(y);
                 data.get(10).add(v);
+            } else if (title.equals("pathfollowcalctime")) {
+                double elapsedTime = Double.parseDouble(message);
+                data.get(11).add(elapsedTime);
             }
         }
 
@@ -210,6 +215,7 @@ class Draw extends JPanel {
         // idx 8: closest point x
         // idx 9: closest point y
         // idx 10: target veloctiy at closest point
+        // idx 11: elapsed exec time
 
         // path
         // idx 0: x pos
@@ -272,11 +278,11 @@ class Draw extends JPanel {
         int spacing = 25;
         int xPos = 50;
 
-        g.drawString("Index: " + String.valueOf(index), xPos, spacing * i++);
-        g.drawString("Position: (" + getString(0) + ", " + getString(1) + ")", xPos, spacing * i++);
-        g.drawString("Direction: " + String.valueOf(-(getData(2) - 90)), xPos, spacing * i++);
-        g.drawString("Curvature: " + getString(3), xPos, spacing * i++);
-        g.drawString("Target Vel: " + getString(10), xPos, spacing * i++);
+        g.drawString("Index: [" + String.valueOf(index) + "];  elapsed time: " + getString(11) + "s", xPos,
+                spacing * i++);
+        g.drawString("Position: (" + getString(0) + ", " + getString(1) + ");  Direction: "
+                + String.valueOf(-(getData(2) - 90)), xPos, spacing * i++);
+        g.drawString("Target Vel: " + getString(10) + ";  Curvature: " + getString(3), xPos, spacing * i++);
         g.drawString("LookAhead Point: (" + getString(4) + ", " + getString(5) + ")", xPos, spacing * i++);
         g.drawString("Closest Point: (" + getString(8) + ", " + getString(9) + ")", xPos, spacing * i++);
         g.drawString("Motors Left Right: (" + getString(6) + ", " + getString(7) + ")", xPos, spacing * i++);
@@ -284,6 +290,13 @@ class Draw extends JPanel {
 
     private double getData(int type) {
         // System.out.println(index + ", " + type);
+        if (type >= data.size()) {
+            return 0;
+        } else if (data.get(type) == null) {
+            return 0;
+        } else if (index >= data.get(type).size()) {
+            return 0;
+        }
         return data.get(type).get(index);
     }
 

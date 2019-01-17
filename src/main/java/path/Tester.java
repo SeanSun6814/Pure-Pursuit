@@ -172,6 +172,7 @@ class Robot {
 	public Path path = null;
 	public double kLeftV = 1, kLeftA = 0, kLeftP = 0, kRightV = 1, kRightA = 0, kRightP = 0;
 	public PathFollower pathFollower;
+	public boolean reversed = false;
 
 	public Robot(double dt) {
 		this.dt = dt / 1000;
@@ -181,7 +182,7 @@ class Robot {
 		// Waypoint(150, 300,50),
 		// new Waypoint(150, 200,50), new Waypoint(200, 150,50), new Waypoint(300,
 		// 150,50)));
-		pathFollower = new PathFollower(path, lookAheadDistance, trackWidth, targetTolerance);
+		pathFollower = new PathFollower(path, lookAheadDistance, trackWidth, targetTolerance, reversed);
 		pos = path.waypoints.get(0).p.copy();
 		// pos = new Point(700, 100);
 		// pos = new Point(80, 100);
