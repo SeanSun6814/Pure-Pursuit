@@ -223,9 +223,10 @@ public class PathGenerator extends LogBase {
 		List<Waypoint> waypoints = path.waypoints;
 
 		// getting direct DISTANCE between all adjacent smoothed points
-		for (int i = 0; i < waypoints.size() - 1; i++) {
-			waypoints.get(i).distance = distanceBetween(waypoints.get(i).p, waypoints.get(i + 1).p);
-		}
+		// for (int i = 0; i < waypoints.size() - 1; i++) {
+		// waypoints.get(i).distance = distanceBetween(waypoints.get(i).p,
+		// waypoints.get(i + 1).p);
+		// }
 
 		// getting the CURVATURE of all points (except endpoints) using adjacent points
 		for (int i = 1; i < waypoints.size() - 1; i++) {
@@ -336,7 +337,7 @@ public class PathGenerator extends LogBase {
 				// difference *
 
 				totalWaypoints.add(new Waypoint(new Point(waypoints.get(i).p.x + j * normalizedVector.dx,
-						waypoints.get(i).p.y + j * normalizedVector.dy), vel)); // TODO: velocity?
+						waypoints.get(i).p.y + j * normalizedVector.dy), vel));
 			}
 		}
 		totalWaypoints.add(waypoints.get(waypoints.size() - 1));

@@ -12,8 +12,9 @@ import java.math.RoundingMode;
 public class Waypoint {
 	public Point p; // stores the coordinate of the waypoint (x,y)
 	public double v; // stores the velocity at the waypoint
-	public double distance; // stores the smoothed direct distance between this waypoint and the last
-							// waypoint (not sure if this is needed at all) TODO: next code cleanup
+	// public double distance; // stores the smoothed direct distance between this
+	// waypoint and the last
+	// waypoint (not sure if this is needed at all)
 	public double curvature;// stores the curvature of the smoothed path between this waypoint and the last
 							// waypoint, (only needed for path generating)
 

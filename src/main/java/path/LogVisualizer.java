@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import Obj.ExecTimer;
 
 class LogVisualizer extends JFrame implements KeyListener {
+    private static final long serialVersionUID = -1045161208869488722L;
     static LogVisualizer instance;
     Draw draw;
 
@@ -173,6 +174,7 @@ class LogVisualizer extends JFrame implements KeyListener {
 
 class Draw extends JPanel {
 
+    private static final long serialVersionUID = -7360661585380905446L;
     List<List<Double>> path;
     List<List<Double>> data;
 
