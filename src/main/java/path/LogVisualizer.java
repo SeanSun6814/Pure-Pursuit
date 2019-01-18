@@ -43,10 +43,10 @@ class LogVisualizer extends JFrame implements KeyListener {
     public LogVisualizer() {
         ExecTimer timer = new ExecTimer();
         loadFile();
-        System.out.println("Done loading file using " + timer.time() + " seconds.");
+        System.out.println("Done loading file in " + timer.time() + " seconds.");
         timer = new ExecTimer();
         parseData();
-        System.out.println("Done parsing data using " + timer.time() + " seconds.");
+        System.out.println("Done parsing data in " + timer.time() + " seconds.");
         initWindow();
 
     }

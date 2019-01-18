@@ -23,6 +23,7 @@ public class PathFollower extends LogBase {
 	public boolean onPath = true;
 
 	double prevLeftVel = 0, prevRightVel = 0;
+	double prevGeneralVel = 0;
 	boolean reversed;
 
 	/// test vars
@@ -92,6 +93,24 @@ public class PathFollower extends LogBase {
 		} else {
 			targetVelocity = path.maxAngleVel / Math.abs(curvature);
 		}
+
+		// The path generation solves the slow down of the robot, but the speed up ramp
+		// is not done (this is to avoid the initial velocity being 0, because then the
+		// robot would never start moving). Moreover, it cannot be inside the drive
+		// class as a simple ramp because that output ramp dampens two things: (turning
+		// acceleration, and general acceleration). True, it would make the speed up
+		// process slower, but it would also make the TURNS more delayed and
+		// uncontrollable.
+		// The solution to solve this is by limiting only the general acceleration and
+		// not angular acceleration. To do that we have to find and limit the general
+		// velocity before it was combined with angular velocity. That's what's
+		// happening here. 1. Calculate max change in velocity (based on maxAccel, and
+		// the time passed since last loop) 2. clamp new velocity inside that range
+		double maxDeltaGeneralVelocity = path.maxAcceleration * (dt / 1000);
+
+		targetVelocity = clamp(targetVelocity, prevGeneralVel - maxDeltaGeneralVelocity,
+				prevGeneralVel + maxDeltaGeneralVelocity);
+		prevGeneralVel = targetVelocity;
 
 		double leftVel = targetVelocity * (2 + curvature * trackWidth) / 2;
 		double rightVel = targetVelocity * (2 - curvature * trackWidth) / 2;

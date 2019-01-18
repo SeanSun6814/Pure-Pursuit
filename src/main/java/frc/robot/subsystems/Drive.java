@@ -42,8 +42,8 @@ public class Drive extends Subsystem {
 
     public void drive(double left, double right) {
         // ramp
-        right = ramp(right, prevRightMotor);
-        left = ramp(left, prevLeftMotor);
+        // right = ramp(right, prevRightMotor);
+        // left = ramp(left, prevLeftMotor);
         Logger.getInstance().log("actualmotoroutput", left + "; " + right);
         prevRightMotor = right;
         prevLeftMotor = left;
