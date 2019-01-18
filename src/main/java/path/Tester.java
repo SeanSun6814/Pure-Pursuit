@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 
 public class Tester extends JFrame {
 
+	private static final long serialVersionUID = 2673930721790205737L;
 	private static final double robotDt = 50; // each update is how many ms for the robot, make this bigger to make the
 												// robot go slower.
 	private static final long dt = 50; // interval of this program actually updating
@@ -50,6 +51,7 @@ public class Tester extends JFrame {
 }
 
 class DrawArea extends JPanel {
+	private static final long serialVersionUID = 772552059232036887L;
 	// java.awt.Point p = new java.awt.Point(300, 200);
 	private Robot r;
 

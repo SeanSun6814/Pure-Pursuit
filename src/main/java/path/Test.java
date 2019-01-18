@@ -1,7 +1,5 @@
 package path;
 
-import java.util.Arrays;
-
 public class Test {
 	public static void main(String[] args) {
 		// PathGenerator p = new PathGenerator();

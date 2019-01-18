@@ -9,11 +9,9 @@ package frc.robot.commands;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.Drive;
 import path.DriveMotorState;
 import path.Odometer;
@@ -22,7 +20,6 @@ import path.PathFollower;
 import path.PathGenerator;
 import path.Point;
 import path.RobotPathConfig;
-import path.Units;
 import path.Waypoint;
 
 public class FollowPath extends CommandBase {

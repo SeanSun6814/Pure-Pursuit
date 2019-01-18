@@ -35,9 +35,6 @@ public class Odometer /* extends LogBase */ {
 		x += distance * Math.cos(gyroAngle);
 		y += distance * Math.sin(gyroAngle);
 
-		// x -= distance * Math.cos(gyroAngle);
-		// y += distance * Math.sin(gyroAngle);
-
 		accumulativeDistance += Math.abs(distance);
 		prevLeftEncoderValue = leftEncoder;
 		prevRightEncoderValue = rightEncoder;
