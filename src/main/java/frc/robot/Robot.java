@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.commandGroups.OnePath;
+import frc.robot.commandGroups.LeftPath;
 import frc.robot.subsystems.Drive;
 import path.Odometer;
 
@@ -34,6 +34,7 @@ public class Robot extends TimedRobot {
 
     public void robotInit() {
         drive.resetSensors();
+        command = new LeftPath();
         log.log("Robot Inited", "Robot", MessageLevel.Info);
     }
 
@@ -44,7 +45,6 @@ public class Robot extends TimedRobot {
             drive.resetSensors();
             log.log("SENSORS RESET!!!");
         }
-        command = new OnePath();
         command.start();
     }
 

@@ -51,6 +51,9 @@ public class FollowPath extends CommandBase {
         if (requestReset) {
             log("requested reset, requested");
             drive.resetSensors();
+            Point pos = path.waypoints.get(0).p;
+            odometer.setX(pos.x);
+            odometer.setY(pos.y);
         }
         prevTimestamp = Timer.getFPGATimestamp();
     }
@@ -71,12 +74,15 @@ public class FollowPath extends CommandBase {
         // end generate path
         pathFollower = new PathFollower(path, config.lookAheadDistance, config.trackWidth, config.targetTolerance,
                 reversed);
+
     }
 
     @Override
     protected void execute() {
         double dt = Timer.getFPGATimestamp() - prevTimestamp; // seconds
         prevTimestamp = Timer.getFPGATimestamp();
+
+        log("dt", dt);
 
         DriveMotorState driveMotorState = pathFollower.update(odometer.getPoint(), drive.getGyro(), dt);
 

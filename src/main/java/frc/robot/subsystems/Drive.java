@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.command.Subsystem;
+import frc.robot.Logger;
 import path.Odometer;
 
 public class Drive extends Subsystem {
@@ -43,6 +44,7 @@ public class Drive extends Subsystem {
         // ramp
         right = ramp(right, prevRightMotor);
         left = ramp(left, prevLeftMotor);
+        Logger.getInstance().log("actualmotoroutput", left + "; " + right);
         prevRightMotor = right;
         prevLeftMotor = left;
         leftMaster.set(ControlMode.PercentOutput, left);
@@ -54,8 +56,8 @@ public class Drive extends Subsystem {
 
         turn = applyDeadband(turn);
 
-        double right = power * 0.7 + turn * 0.8 * 0.6;
-        double left = power * 0.7 - turn * 0.8 * 0.6;
+        double right = power * 0.6 + turn * 0.8 * 0.6;
+        double left = power * 0.6 - turn * 0.8 * 0.6;
 
         // ramp
         right = ramp(right, prevRightMotor);
@@ -176,13 +178,13 @@ public class Drive extends Subsystem {
     }
 
     private double prevLeftMotor = 0, prevRightMotor = 0;
-    private double maxAcceleration = 0.025; // 12/0.05;
+    private double maxAcceleration = 0.05; // 1/50;
 
     private double ramp(double value, double prevValue) {
         if (value - prevValue > maxAcceleration) {
-            value += maxAcceleration;
+            value = prevValue + maxAcceleration;
         } else if (value - prevValue < -maxAcceleration) {
-            value -= maxAcceleration;
+            value = prevValue - maxAcceleration;
         }
         return value;
     }

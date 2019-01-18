@@ -275,7 +275,7 @@ public class PathFollower extends LogBase {
 			// searchFrom = Math.max(lastLookAheadPointPathIndex - 1, 0);
 			// searchTo = Math.min(lastLookAheadPointPathIndex + searchLimit,
 			// path.waypoints.size() - 1);
-			searchFrom = Math.max(lastLookAheadPointPathIndex - 1, 0);// Math.max(getClosestWaypointIndex(robotPos), 0);
+			searchFrom = Math.max(lastLookAheadPointPathIndex, 0);// Math.max(getClosestWaypointIndex(robotPos), 0);
 			searchTo = path.waypoints.size() - 1;
 			mLookAheadDistance = lookAheadDistance;
 

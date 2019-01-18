@@ -25,8 +25,11 @@ class LogVisualizer extends JFrame implements KeyListener {
     static LogVisualizer instance;
     Draw draw;
 
-    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogBACK.csv";
-    final String fileName = "C:\\Users\\Sean\\Desktop\\LogC.csv";
+    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogU1.csv";
+    final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftWorking1.csv";
+    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftTooFast.csv";
+    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftLast.csv";
+    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeft1.csv";
 
     List<String[]> file = new ArrayList<>();
 
@@ -64,17 +67,20 @@ class LogVisualizer extends JFrame implements KeyListener {
     public void parseData() {
 
         data.add(new ArrayList<>()); // idx 0: robot x pos
-        data.add(new ArrayList<>());// idx 1: robot y pos
-        data.add(new ArrayList<>());// idx 2: heading
+        data.add(new ArrayList<>()); // idx 1: robot y pos
+        data.add(new ArrayList<>()); // idx 2: heading
         data.add(new ArrayList<>()); // idx3: curvature
         data.add(new ArrayList<>()); // idx 4: lookadheadPoint x pos
-        data.add(new ArrayList<>());// idx 5: lookadheadPoint y pos
-        data.add(new ArrayList<>());// idx 6: left motor
+        data.add(new ArrayList<>()); // idx 5: lookadheadPoint y pos
+        data.add(new ArrayList<>()); // idx 6: left motor
         data.add(new ArrayList<>()); // idx 7: right motor
         data.add(new ArrayList<>()); // idx 8: closest point x
         data.add(new ArrayList<>()); // idx 9: closest point y
         data.add(new ArrayList<>()); // idx 10: target veloctiy at closest point
         data.add(new ArrayList<>()); // idx 11: elapsed exec time
+        data.add(new ArrayList<>()); // idx 12: actual vel left
+        data.add(new ArrayList<>()); // idx 13: actual vel right
+        data.add(new ArrayList<>()); // idx 14: dt: the actual refresh rate
 
         path.add(new ArrayList<>()); // idx 0: x pos
         path.add(new ArrayList<>()); // idx 1: y pos
@@ -106,6 +112,12 @@ class LogVisualizer extends JFrame implements KeyListener {
                 double r = Double.parseDouble(msg[1]);
                 data.get(6).add(l);
                 data.get(7).add(r);
+            } else if (title.equals("actualmotoroutput")) {
+                String[] msg = message.split(";");
+                double l = Double.parseDouble(msg[0]);
+                double r = Double.parseDouble(msg[1]);
+                data.get(12).add(l);
+                data.get(13).add(r);
             } else if (title.equals("gyro")) {
                 double heading = Double.parseDouble(message);
                 heading = -heading + 90; // gyro comes in degrees and have up as 0 deg
@@ -132,6 +144,9 @@ class LogVisualizer extends JFrame implements KeyListener {
             } else if (title.equals("pathfollowcalctime")) {
                 double elapsedTime = Double.parseDouble(message);
                 data.get(11).add(elapsedTime);
+            } else if (title.equals("dt")) {
+                double dt = Double.parseDouble(message);
+                data.get(14).add(dt);
             }
         }
 
@@ -218,8 +233,11 @@ class Draw extends JPanel {
         // idx 9: closest point y
         // idx 10: target veloctiy at closest point
         // idx 11: elapsed exec time
+        // idx 12: actual vel left
+        // idx 13: actual vel right
+        // idx 14: dt: the actual refresh rate
 
-        // path
+        // path array
         // idx 0: x pos
         // idx 1: y pos
     }
@@ -280,14 +298,15 @@ class Draw extends JPanel {
         int spacing = 25;
         int xPos = 50;
 
-        g.drawString("Index: [" + String.valueOf(index) + "];  elapsed time: " + getString(11) + "s", xPos,
-                spacing * i++);
+        g.drawString("Index: [" + String.valueOf(index) + "]; dt: " + getString(14) + "s;   elapsed time: "
+                + getString(11) + "s", xPos, spacing * i++);
         g.drawString("Position: (" + getString(0) + ", " + getString(1) + ");  Direction: "
                 + String.valueOf(-(getData(2) - 90)), xPos, spacing * i++);
         g.drawString("Target Vel: " + getString(10) + ";  Curvature: " + getString(3), xPos, spacing * i++);
         g.drawString("LookAhead Point: (" + getString(4) + ", " + getString(5) + ")", xPos, spacing * i++);
         g.drawString("Closest Point: (" + getString(8) + ", " + getString(9) + ")", xPos, spacing * i++);
         g.drawString("Motors Left Right: (" + getString(6) + ", " + getString(7) + ")", xPos, spacing * i++);
+        g.drawString("Actual Motors Left Right: (" + getString(12) + ", " + getString(13) + ")", xPos, spacing * i++);
     }
 
     private double getData(int type) {

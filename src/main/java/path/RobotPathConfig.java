@@ -16,13 +16,12 @@ public class RobotPathConfig {
     public static RobotPathConfig getPracticeRobotConfig() {
         if (practiceRobotConfig == null) {
             practiceRobotConfig = new RobotPathConfig();
-            practiceRobotConfig.maxVel = Units.ft2m(1.4);// is this really that slow? TODO: fix all of these (changed
-                                                         // dt)
-            practiceRobotConfig.maxAcc = Units.ft2m(0.3); // m/sec every sec
+            practiceRobotConfig.maxVel = Units.ft2m(9); // 7 before
+            practiceRobotConfig.maxAcc = Units.ft2m(3); // m/sec every sec
             practiceRobotConfig.spacing = Units.ft2m(1);
-            practiceRobotConfig.maxAngVel = 1.5; // radians per second
-            practiceRobotConfig.lookAheadDistance = Units.ft2m(2);
-            practiceRobotConfig.trackWidth = Units.in2m(31.5);// 23 inches
+            practiceRobotConfig.maxAngVel = 2.5; // radians per second
+            practiceRobotConfig.lookAheadDistance = Units.ft2m(1);
+            practiceRobotConfig.trackWidth = Units.in2m(25);// 23 inches
             practiceRobotConfig.targetTolerance = Units.in2m(4);// m
             practiceRobotConfig.physicalMaxVel = Units.ft2m(12);
         }

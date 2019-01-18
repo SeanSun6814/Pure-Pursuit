@@ -60,12 +60,10 @@ public class Odometer /* extends LogBase */ {
 		return y;
 	}
 
-	@Deprecated
 	public void setX(double x) {
 		this.x = x;
 	}
 
-	@Deprecated
 	public void setY(double y) {
 		this.y = y;
 	}
