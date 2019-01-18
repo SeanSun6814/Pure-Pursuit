@@ -31,6 +31,8 @@ public class FollowPath extends CommandBase {
     Path path = null;
     RobotPathConfig config;
     double prevTimestamp = 0;
+    double prevLeftVel = 0, prevRightVel = 0;
+    double prevLeftEncoder = 0, prevRightEncoder = 0;
 
     boolean reversed;
     boolean requestReset;
@@ -86,8 +88,35 @@ public class FollowPath extends CommandBase {
         log("gyro", round(drive.getGyro()));
         log("_____________________________________\n");
 
-        drive.drive(driveMotorState.leftVel / config.physicalMaxVel, driveMotorState.rightVel / config.physicalMaxVel);
-        // divide because the max/min motor output is -1 to 1
+        // get acceleration
+        double leftAcc = (driveMotorState.leftVel - prevLeftVel) / dt;
+        double rightAcc = (driveMotorState.rightVel - prevRightVel) / dt;
+
+        prevLeftVel = driveMotorState.leftVel;
+        prevRightVel = driveMotorState.rightVel;
+
+        // get actual velocity from encoders
+        double actualLeftVel = (drive.getLeftEncoder() - prevLeftEncoder) / dt;
+        double actualRightVel = (drive.getRightEncoder() - prevRightEncoder) / dt;
+
+        prevLeftEncoder = drive.getLeftEncoder();
+        prevRightEncoder = drive.getRightEncoder();
+
+        double left = calculatePIDVA(driveMotorState.leftVel, leftAcc, actualLeftVel, config.kP, config.kV, config.kA);
+        double right = calculatePIDVA(driveMotorState.rightVel, rightAcc, actualRightVel, config.kP, config.kV,
+                config.kA);
+
+        log("actualmotoroutput", left + "; " + right);
+        drive.drive(left, right);
+    }
+
+    private double calculatePIDVA(double velocity, double acceleration, double actualVelocity, double kP, double kV,
+            double kA) {
+        log("pidp", kP * (velocity - actualVelocity));
+        log("pida", kA * acceleration);
+        log("piderror", (velocity - actualVelocity));
+
+        return kV * velocity + kA * acceleration + kP * (velocity - actualVelocity);
     }
 
     public static double round(double value) {

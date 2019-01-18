@@ -11,15 +11,18 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import frc.robot.Logger;
+import path.DriveMotorState;
 import path.Odometer;
+import path.RobotPathConfig;
 
 public class Drive extends Subsystem {
-    TalonSRX leftMaster, rightMaster;
-    VictorSPX leftSlave, rightSlave;
+    private TalonSRX leftMaster, rightMaster;
+    private VictorSPX leftSlave, rightSlave;
 
-    Encoder leftEncoder, rightEncoder;
-    AHRS gyro;
-    double gyroZero = 0;
+    private Encoder leftEncoder, rightEncoder;
+
+    private AHRS gyro;
+    private double gyroZero = 0;
 
     private static Drive instance;
 
@@ -41,12 +44,6 @@ public class Drive extends Subsystem {
     }
 
     public void drive(double left, double right) {
-        // ramp
-        // right = ramp(right, prevRightMotor);
-        // left = ramp(left, prevLeftMotor);
-        Logger.getInstance().log("actualmotoroutput", left + "; " + right);
-        prevRightMotor = right;
-        prevLeftMotor = left;
         leftMaster.set(ControlMode.PercentOutput, left);
         rightMaster.set(ControlMode.PercentOutput, right);
     }

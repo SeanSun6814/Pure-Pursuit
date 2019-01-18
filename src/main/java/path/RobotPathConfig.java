@@ -10,6 +10,9 @@ public class RobotPathConfig {
     public double lookAheadDistance;// distance to find lookahead point
     public double trackWidth;// track width between left, right wheels (make 1-3 inches bigger)
     public double targetTolerance; // how close to the target is considered finished
+    public double kP; // porportional constant for PIDVA motor output
+    public double kV; // velocity constant for PIDVA motor output
+    public double kA; // acceleration constant for PIDVA motor output
 
     private static RobotPathConfig practiceRobotConfig;
 
@@ -24,6 +27,9 @@ public class RobotPathConfig {
             practiceRobotConfig.trackWidth = Units.in2m(25);// 23 inches
             practiceRobotConfig.targetTolerance = Units.in2m(4);// m
             practiceRobotConfig.physicalMaxVel = Units.ft2m(12);
+            practiceRobotConfig.kV = 1 / practiceRobotConfig.physicalMaxVel;
+            practiceRobotConfig.kA = 0;
+            practiceRobotConfig.kP = 0;
         }
         return practiceRobotConfig;
     }

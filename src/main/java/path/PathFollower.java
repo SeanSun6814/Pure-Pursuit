@@ -22,7 +22,6 @@ public class PathFollower extends LogBase {
 	public int searchLimit;
 	public boolean onPath = true;
 
-	double prevLeftVel = 0, prevRightVel = 0;
 	double prevGeneralVel = 0;
 	boolean reversed;
 
@@ -106,7 +105,7 @@ public class PathFollower extends LogBase {
 		// velocity before it was combined with angular velocity. That's what's
 		// happening here. 1. Calculate max change in velocity (based on maxAccel, and
 		// the time passed since last loop) 2. clamp new velocity inside that range
-		double maxDeltaGeneralVelocity = path.maxAcceleration * (dt / 1000);
+		double maxDeltaGeneralVelocity = path.maxAcceleration * dt;
 
 		targetVelocity = clamp(targetVelocity, prevGeneralVel - maxDeltaGeneralVelocity,
 				prevGeneralVel + maxDeltaGeneralVelocity);
@@ -115,25 +114,15 @@ public class PathFollower extends LogBase {
 		double leftVel = targetVelocity * (2 + curvature * trackWidth) / 2;
 		double rightVel = targetVelocity * (2 - curvature * trackWidth) / 2;
 
-		double leftAcc = getAcceleration(leftVel, prevLeftVel, dt);
-		double rightAcc = getAcceleration(rightVel, prevRightVel, dt);
-
 		if (reversed) {
 			double newleftVel = -rightVel;
 			double newrightVel = -leftVel;
-			double newleftAcc = -rightAcc;
-			double newrightAcc = -leftAcc;
 
 			rightVel = newrightVel;
 			leftVel = newleftVel;
-			rightAcc = newrightAcc;
-			leftAcc = newleftAcc;
 		}
 
 		log("motoroutput", leftVel + "; " + rightVel);
-
-		prevLeftVel = leftVel;
-		prevRightVel = rightVel;
 
 		if (distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p) <= targetTolerance) {
 			done = true;
@@ -143,9 +132,9 @@ public class PathFollower extends LogBase {
 		log("pathfollowcalctime", execTimer.time());
 
 		if (done) {
-			return new DriveMotorState(0, 0, 0, 0);
+			return new DriveMotorState(0, 0);
 		}
-		return new DriveMotorState(leftVel, leftAcc, rightVel, rightAcc);
+		return new DriveMotorState(leftVel, rightVel);
 	}
 
 	private Waypoint getInterpolatedWaypoint(Point robotPos) {
@@ -463,7 +452,7 @@ public class PathFollower extends LogBase {
 	}
 
 	private double getAcceleration(double vel, double prevVel, double dt) {
-		return (vel - prevVel) / (dt / 1000);
+		return (vel - prevVel) / dt;
 	}
 
 	private double clamp(double x, double min, double max) {
