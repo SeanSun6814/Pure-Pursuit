@@ -86,7 +86,6 @@ public class FollowPath extends CommandBase {
         DriveMotorState driveMotorState = pathFollower.update(odometer.getPoint(), drive.getGyro(), dt);
 
         log("gyro", round(drive.getGyro()));
-        log("_____________________________________\n");
 
         // get acceleration
         double leftAcc = (driveMotorState.leftVel - prevLeftVel) / dt;
@@ -107,6 +106,7 @@ public class FollowPath extends CommandBase {
                 config.kA);
 
         log("actualmotoroutput", left + "; " + right);
+        log("_____________________________________\n");
         drive.drive(left, right);
     }
 
