@@ -25,8 +25,9 @@ class LogVisualizer extends JFrame implements KeyListener {
     static LogVisualizer instance;
     Draw draw;
 
-    // final String fileName = "C:\\Users\\Sean\\Desktop\\LogU1.csv";
-    final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftWorking1.csv";
+    final String fileName = "C:\\Users\\Sean\\Desktop\\Log.csv";
+    // final String fileName = "C:\\Users\\Sean\\Desktop\\Thursday
+    // logs\\LogLeftLast.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftTooFast.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftLast.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeft1.csv";
@@ -81,6 +82,8 @@ class LogVisualizer extends JFrame implements KeyListener {
         data.add(new ArrayList<>()); // idx 12: actual vel left
         data.add(new ArrayList<>()); // idx 13: actual vel right
         data.add(new ArrayList<>()); // idx 14: dt: the actual refresh rate
+        data.add(new ArrayList<>()); // idx 15: finished path: 1 if true, 0 if false
+        data.add(new ArrayList<>()); // idx 16: on path: 1 if true, 0 if false
 
         path.add(new ArrayList<>()); // idx 0: x pos
         path.add(new ArrayList<>()); // idx 1: y pos
@@ -147,6 +150,12 @@ class LogVisualizer extends JFrame implements KeyListener {
             } else if (title.equals("dt")) {
                 double dt = Double.parseDouble(message);
                 data.get(14).add(dt);
+            } else if (title.equals("finishedpath")) {
+                double bool = Double.parseDouble(message);
+                data.get(15).add(bool);
+            } else if (title.equals("onpath")) {
+                double bool = Double.parseDouble(message);
+                data.get(16).add(bool);
             }
         }
 
@@ -236,6 +245,8 @@ class Draw extends JPanel {
         // idx 12: actual vel left
         // idx 13: actual vel right
         // idx 14: dt: the actual refresh rate
+        // idx 15: finished path: 1 if true, 0 if false
+        // idx 16: on path: 1 if true, 0 if false
 
         // path array
         // idx 0: x pos
@@ -307,6 +318,9 @@ class Draw extends JPanel {
         g.drawString("Closest Point: (" + getString(8) + ", " + getString(9) + ")", xPos, spacing * i++);
         g.drawString("Motors Left Right: (" + getString(6) + ", " + getString(7) + ")", xPos, spacing * i++);
         g.drawString("Actual Motors Left Right: (" + getString(12) + ", " + getString(13) + ")", xPos, spacing * i++);
+        g.drawString("On Path: " + (delta(getData(16), 1) < 0.1 ? "TRUE" : "FALSE") + ";  Finished Path: "
+                + (delta(getData(15), 1) < 0.1 ? "TRUE" : "FALSE"), xPos, spacing * i++);
+
     }
 
     private double getData(int type) {
@@ -372,6 +386,10 @@ class Draw extends JPanel {
         BigDecimal bd = new BigDecimal(value);
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
+    }
+
+    private double delta(double x, double y) {
+        return Math.abs(x - y);
     }
 
 }

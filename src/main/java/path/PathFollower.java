@@ -128,6 +128,7 @@ public class PathFollower extends LogBase {
 			done = true;
 			log("FINISHED PATH!!!!!!!!!!!!");
 		}
+		log("finishedpath", done ? 1 : 0);
 
 		log("pathfollowcalctime", execTimer.time());
 
@@ -205,7 +206,7 @@ public class PathFollower extends LogBase {
 		} else {
 			onPath = false;
 		}
-		log("ONPATH = " + onPath);
+		log("onpath", onPath ? 1 : 0);
 
 		// log("getting interpolated closest Waypoint: (newWaypoint)");
 		// log(newWaypoint);

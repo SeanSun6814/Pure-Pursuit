@@ -106,7 +106,7 @@ public class FollowPath extends CommandBase {
                 config.kA);
 
         log("actualmotoroutput", left + "; " + right);
-        log("_____________________________________\n");
+        log("endloop", "_____________________________________\n");
         drive.drive(left, right);
     }
 
