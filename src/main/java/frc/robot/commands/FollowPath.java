@@ -101,8 +101,8 @@ public class FollowPath extends CommandBase {
         prevLeftEncoder = drive.getLeftEncoder();
         prevRightEncoder = drive.getRightEncoder();
 
-        double left = calculatePIDVA(driveMotorState.leftVel, leftAcc, actualLeftVel, config.kP, config.kV, config.kA);
-        double right = calculatePIDVA(driveMotorState.rightVel, rightAcc, actualRightVel, config.kP, config.kV,
+        double left = calculatePIDVAL(driveMotorState.leftVel, leftAcc, actualLeftVel, config.kP, config.kV, config.kA);
+        double right = calculatePIDVAR(driveMotorState.rightVel, rightAcc, actualRightVel, config.kP, config.kV,
                 config.kA);
 
         log("actualmotoroutput", left + "; " + right);
@@ -110,11 +110,20 @@ public class FollowPath extends CommandBase {
         drive.drive(left, right);
     }
 
-    private double calculatePIDVA(double velocity, double acceleration, double actualVelocity, double kP, double kV,
+    private double calculatePIDVAL(double velocity, double acceleration, double actualVelocity, double kP, double kV,
             double kA) {
-        log("pidp", kP * (velocity - actualVelocity));
-        log("pida", kA * acceleration);
-        log("piderror", (velocity - actualVelocity));
+        log("lpidp", kP * (velocity - actualVelocity));
+        log("lpida", kA * acceleration);
+        log("lpiderror", (velocity - actualVelocity));
+
+        return kV * velocity + kA * acceleration + kP * (velocity - actualVelocity);
+    }
+
+    private double calculatePIDVAR(double velocity, double acceleration, double actualVelocity, double kP, double kV,
+            double kA) {
+        log("rpidp", kP * (velocity - actualVelocity));
+        log("rpida", kA * acceleration);
+        log("rpiderror", (velocity - actualVelocity));
 
         return kV * velocity + kA * acceleration + kP * (velocity - actualVelocity);
     }
