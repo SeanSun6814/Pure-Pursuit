@@ -112,18 +112,20 @@ public class FollowPath extends CommandBase {
 
     private double calculatePIDVAL(double velocity, double acceleration, double actualVelocity, double kP, double kV,
             double kA) {
-        log("lpidp", kP * (velocity - actualVelocity));
-        log("lpida", kA * acceleration);
-        log("lpiderror", (velocity - actualVelocity));
+        // log("lpidp", kP * (velocity - actualVelocity));
+        // log("lpida", kA * acceleration);
+        // log("lpiderror", (velocity - actualVelocity));
+        log("encodervelocityl", actualVelocity);
 
         return kV * velocity + kA * acceleration + kP * (velocity - actualVelocity);
     }
 
     private double calculatePIDVAR(double velocity, double acceleration, double actualVelocity, double kP, double kV,
             double kA) {
-        log("rpidp", kP * (velocity - actualVelocity));
-        log("rpida", kA * acceleration);
-        log("rpiderror", (velocity - actualVelocity));
+        // log("rpidp", kP * (velocity - actualVelocity));
+        // log("rpida", kA * acceleration);
+        // log("rpiderror", (velocity - actualVelocity));
+        log("encodervelocityr", actualVelocity);
 
         return kV * velocity + kA * acceleration + kP * (velocity - actualVelocity);
     }

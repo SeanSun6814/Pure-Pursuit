@@ -47,9 +47,18 @@ class LogVisualizer extends JFrame implements KeyListener {
         System.out.println("Done loading file in " + timer.time() + " seconds.");
         timer = new ExecTimer();
         parseData();
+        printPID();
         System.out.println("Done parsing data in " + timer.time() + " seconds.");
         initWindow();
 
+    }
+
+    private void printPID() {
+        // using right wheel velocity
+        System.out.println("=============== PID setpoint, actual, error ===============");
+        for (int i = 0; i < data.get(17).size(); i++) {
+            System.out.println(getData(7, i) + "; " + getData(17, i) + "; " + (getData(7, i) - getData(17, i)));
+        }
     }
 
     private void initWindow() {
@@ -84,6 +93,7 @@ class LogVisualizer extends JFrame implements KeyListener {
         data.add(new ArrayList<>()); // idx 14: dt: the actual refresh rate
         data.add(new ArrayList<>()); // idx 15: finished path: 1 if true, 0 if false
         data.add(new ArrayList<>()); // idx 16: on path: 1 if true, 0 if false
+        data.add(new ArrayList<>()); // idx 17: encoder velocity
 
         path.add(new ArrayList<>()); // idx 0: x pos
         path.add(new ArrayList<>()); // idx 1: y pos
@@ -156,6 +166,9 @@ class LogVisualizer extends JFrame implements KeyListener {
             } else if (title.equals("onpath")) {
                 double bool = Double.parseDouble(message);
                 data.get(16).add(bool);
+            } else if (title.equals("encodervelocityr")) {
+                double v = Double.parseDouble(message);
+                data.get(17).add(v);
             }
         }
 
@@ -193,6 +206,18 @@ class LogVisualizer extends JFrame implements KeyListener {
 
     public void keyTyped(KeyEvent e) {
 
+    }
+
+    private double getData(int type, int index) {
+        // System.out.println(index + ", " + type);
+        if (type >= data.size()) {
+            return 0;
+        } else if (data.get(type) == null) {
+            return 0;
+        } else if (index >= data.get(type).size()) {
+            return 0;
+        }
+        return data.get(type).get(index);
     }
 }
 
