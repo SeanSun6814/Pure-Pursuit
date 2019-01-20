@@ -20,6 +20,11 @@ import javax.swing.JPanel;
 
 import Obj.ExecTimer;
 
+/**
+ * This class is a runnable GUI that displays what the robot did in
+ * path-following mode by reading its log file.
+ */
+
 class LogVisualizer extends JFrame implements KeyListener {
     private static final long serialVersionUID = -1045161208869488722L;
     static LogVisualizer instance;
@@ -37,10 +42,20 @@ class LogVisualizer extends JFrame implements KeyListener {
     List<List<Double>> path = new ArrayList<List<Double>>();
     List<List<Double>> data = new ArrayList<List<Double>>();
 
+    /**
+     * This is the entry point of the program. This is not the program, it only
+     * initiates the program by creating an instance of it.
+     */
     public static void main(String[] args) {
         instance = new LogVisualizer();
     }
 
+    /**
+     * This is the program init function (inside the constructor of this class). On
+     * init, we need to 1. load the log file. 2. parse the log file into the "data"
+     * arrayList. 3. print out PID table so we can copy it into excel 4. setup the
+     * GUI
+     */
     public LogVisualizer() {
         ExecTimer timer = new ExecTimer();
         loadFile();

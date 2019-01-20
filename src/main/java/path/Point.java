@@ -3,6 +3,8 @@ package path;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+/** This is a class that holds a 2d point that has a X and Y coordinate. */
+
 public class Point {
 	public double x;
 	public double y;
@@ -43,6 +45,13 @@ public class Point {
 		this.y = p.y;
 	}
 
+	/**
+	 * Use this when you want two separate objects instead of two references of the
+	 * same thing
+	 * 
+	 * @return a NEW point that is independent from this point that just happened to
+	 *         have the same values as this one
+	 */
 	public Point copy() {
 		return new Point(this.x, this.y);
 	}

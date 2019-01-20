@@ -47,6 +47,21 @@ public class PathFollower extends LogBase {
 		log("searchLimit", searchLimit);
 	}
 
+	/**
+	 * This is the main function of pure pursuit.
+	 * 
+	 * Basically: I already know the path, so if you can tell me the robot pose
+	 * (coordinate + heading) & time interval, I can calculate how fast the motors
+	 * should spin at. Use PID later on to make sure it happens.
+	 * 
+	 * @param robotPos A point that holds the robot current position
+	 * @param gyro     A angle in degrees (double) front is 0 deg, clockwise is
+	 *                 positive
+	 * @param dt       The time interval between now and the last update (in
+	 *                 seconds)
+	 * @return left & right motor speed (wrapped in a class called
+	 *         {@link DriveMotorState}
+	 */
 	public DriveMotorState update(Point robotPos, double gyro, double dt) {
 		ExecTimer execTimer = new ExecTimer();
 
@@ -138,22 +153,30 @@ public class PathFollower extends LogBase {
 		return new DriveMotorState(leftVel, rightVel);
 	}
 
+	/**
+	 * This function gets the closest point to the robot that is on the path.
+	 * However, it doesn't just simply returns a known point, in fact, it
+	 * interpolates the points if the closest point is in between two known points.
+	 * 
+	 * This function also updates the "onPath" variable which tells the rest of the
+	 * program if the robot is on path or not. If the lookahead point is able to
+	 * reach the path (distance between robot and closet point < lookahead
+	 * distance), it is on path, otherwise not.
+	 * 
+	 * @param robotPos robotPosition (wrapped in a {@link Point}) is needed to do
+	 *                 the caluclations
+	 * 
+	 * @return the interpolated waypoint (wrapped in a {@link Waypoint})
+	 */
 	private Waypoint getInterpolatedWaypoint(Point robotPos) {
 
 		// get the two closest points on path to robot
 		int index1 = getClosestWaypointIndex(robotPos);
 		int index2 = findClosestWaypointNeighbor(index1, robotPos);
-		// log("getting interpolated closest Waypoint: (index1, index2)");
-		// log(index1);
-		// log(index2);
-		// checked index 1,2 are correct
 
 		// get the distance from robot to those two points (index1, index2)
 		double d1 = distanceBetween(robotPos, path.waypoints.get(index1).p);
 		double d2 = distanceBetween(robotPos, path.waypoints.get(index2).p);
-		// log("getting interpolated closest Waypoint: (dist1, dist2)");
-		// log(d1);
-		// log(d2);
 
 		// a vector representing the distance between those two points (index1, index2)
 		Vector deltaVector = new Vector(path.waypoints.get(index1).p, path.waypoints.get(index2).p);
@@ -161,7 +184,7 @@ public class PathFollower extends LogBase {
 		// scaler distance between those two points
 		double d = deltaVector.length();
 
-		// the scaler distance from index1 ->closest point (which is the intercept of
+		// the scaler distance from index1 -> closest point (which is the intercept of
 		// the path line and the perpendicular line of the path which also goes through
 		// the robotPos) (see diagram: marked "x")
 		double scale = (d * d + d1 * d1 - d2 * d2) / (2 * d);
@@ -180,15 +203,14 @@ public class PathFollower extends LogBase {
 		// velocity = idx1.v + v.diff * ratio (diff = idx2.v-idx1.v)
 		double vel = path.waypoints.get(index1).v
 				+ ratio * (path.waypoints.get(index1).v - path.waypoints.get(index2).v);
-		// log("getting interpolated closest Waypoint: (ratio)");
-		// log(ratio);
 
-		// finally put all that info into a waypoint
-		// the position of that point = as base position + deltaPosition
+		// finally put all that info into a new waypoint
+		// the position of that point = base position + deltaPosition
 		// so position = idx1.position + xVector
 		Waypoint newWaypoint = new Waypoint(
 				new Point(path.waypoints.get(index1).p.x + xVector.dx, path.waypoints.get(index1).p.y + xVector.dy),
 				vel);
+
 		// // uh oh, the point is actually off our segment. because this is calculated
 		// // based on the formula of this segment, it assumes this segment extends to
 		// // infinity, however, we need to check if the perpendicular line actually
@@ -208,8 +230,6 @@ public class PathFollower extends LogBase {
 		}
 		log("onpath", onPath ? 1 : 0);
 
-		// log("getting interpolated closest Waypoint: (newWaypoint)");
-		// log(newWaypoint);
 		closestpoint = newWaypoint;
 		return newWaypoint;
 	}
