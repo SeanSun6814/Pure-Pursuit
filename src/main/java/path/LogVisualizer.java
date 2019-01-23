@@ -30,7 +30,7 @@ class LogVisualizer extends JFrame implements KeyListener {
     static LogVisualizer instance;
     Draw draw;
 
-    final String fileName = "C:\\Users\\Sean\\Desktop\\Logshort.csv";
+    final String fileName = "C:\\Users\\Sean\\Desktop\\LogLast.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\Thursday
     // logs\\LogLeftLast.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftTooFast.csv";
@@ -213,6 +213,10 @@ class LogVisualizer extends JFrame implements KeyListener {
             draw.update(-10);
         else if (e.getKeyCode() == KeyEvent.VK_UP)
             draw.update(10);
+        else if (e.getKeyCode() == KeyEvent.VK_SHIFT)
+            draw.update(-3);
+        else if (e.getKeyCode() == KeyEvent.VK_SPACE)
+            draw.update(3);
     }
 
     public void keyReleased(KeyEvent e) {

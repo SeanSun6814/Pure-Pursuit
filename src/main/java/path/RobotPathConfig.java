@@ -35,8 +35,8 @@ public class RobotPathConfig {
         practiceRobotConfig.targetTolerance = Units.in2m(4);// m
         practiceRobotConfig.physicalMaxVel = Units.ft2m(12);
         practiceRobotConfig.kV = 1 / practiceRobotConfig.physicalMaxVel;
-        practiceRobotConfig.kA = 0;
-        practiceRobotConfig.kP = 0;
+        practiceRobotConfig.kA = 2 / 9;
+        practiceRobotConfig.kP = 0.2;
         return practiceRobotConfig;
     }
 
