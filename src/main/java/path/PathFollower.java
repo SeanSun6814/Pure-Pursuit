@@ -21,6 +21,7 @@ public class PathFollower extends LogBase {
 	public boolean done;
 	public int searchLimit;
 	public boolean onPath = true;
+	double prevDist2Target = Double.MAX_VALUE;
 
 	double prevGeneralVel = 0;
 	boolean reversed;
@@ -139,10 +140,7 @@ public class PathFollower extends LogBase {
 
 		log("motoroutput", leftVel + "; " + rightVel);
 
-		if (distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p) <= targetTolerance) {
-			done = true;
-			log("FINISHED PATH!!!!!!!!!!!!");
-		}
+		calculateFinishedPath(robotPos);
 		log("finishedpath", done ? 1 : 0);
 
 		log("pathfollowcalctime", execTimer.time());
@@ -151,6 +149,27 @@ public class PathFollower extends LogBase {
 			return new DriveMotorState(0, 0);
 		}
 		return new DriveMotorState(leftVel, rightVel);
+	}
+
+	private void calculateFinishedPath(Point robotPos) {
+		int currentPathIndex = getClosestWaypointIndex(robotPos);
+		if ((currentPathIndex + 0.0) / (path.waypoints.size() + 0.0) < 0.5) {
+			// not even half done, haven't finished path
+			done = false;
+			return;
+		}
+
+		double distance = distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p);
+		if (distance <= targetTolerance) {
+			log("We are pretty close to target, let's see if we go even closer.");
+			if (distance > prevDist2Target) {
+				log("Ok, we are starting to get further away from the target, let's stop now.");
+				done = true;
+				log("FINISHED PATH!!!!!!!!!!!!");
+			}
+			prevDist2Target = distance;
+			done = false;
+		}
 	}
 
 	/**

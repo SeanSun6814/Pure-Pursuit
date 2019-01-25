@@ -9,36 +9,29 @@ import Obj.LogBase;
 
 public class PathGenerator extends LogBase {
 
-	public static void main(String[] args) {
-		PathGenerator p = new PathGenerator();
-		// List<Waypoint> waypoints = Arrays.asList(
-		// new Waypoint(new Point(0, 0), 0),
-		// new Waypoint(new Point(10, 10), 0),
-		// new Waypoint(new Point(20, 30), 0),
-		// new Waypoint(new Point(30, 30), 0),
-		// new Waypoint(new Point(-10, -10), 0));
+	public static void main(String[] args) { // generate path
+		Path path;
+		PathGenerator pathGenerator = new PathGenerator();
 
-		// List<Waypoint> waypoints = Arrays.asList(new Waypoint(new Point(0, 0), 0),
-		// new Waypoint(new Point(9, 17), 0),
-		// new Waypoint(new Point(19, 60), 0), new Waypoint(new Point(60, 40), 0),
-		// new Waypoint(new Point(80, 10), 0));
-		List<Waypoint> waypoints = Arrays.asList(new Waypoint(new Point(0, 350), 0),
-				new Waypoint(new Point(100, 350), 0), new Waypoint(new Point(150, 300), 0),
-				new Waypoint(new Point(150, 200), 0), new Waypoint(new Point(200, 150), 0),
-				new Waypoint(new Point(300, 150), 0));
+		boolean reset, reverse;
+		List<Waypoint> waypoints;
+		RobotPathConfig config;
 
-		// Path(spacing, maxVel, kTurnConst
-		Path injected = p.generatePath(new Path(10, 100, 10, 3, waypoints));
+		reset = true;
+		reverse = false;
+		config = RobotPathConfig.getPracticeRobotConfig();
 
-		// p.trainPolyFit(result, 3);
-		// System.out.println("__________===_________");
-		System.out.println(injected);
-		System.out.println("______________________");
+		path = pathGenerator.calculate(new Path(config.spacing, config.maxVel, config.maxAcc, config.maxAngVel,
+				Arrays.asList(new Waypoint(Units.in2m(116.75), Units.in2m(66)),
+						new Waypoint(Units.in2m(116.75), Units.in2m(66) + 0.5),
+						new Waypoint(Units.in2m(150.12), Units.in2m(227.75) - 2),
+						new Waypoint(Units.in2m(150.12), Units.in2m(227.75)))));
 
-		Path smoothed = p.mSmoother(injected, 0.4, 0.01);
-		p.tagVelocity(smoothed);
-		System.out.println(smoothed);
-
+		System.out.println("Path: [" + path.waypoints.size() + "]");
+		for (int i = 0; i < path.waypoints.size(); i++) {
+			System.out.println(i + "]: " + path.waypoints.get(i));
+		}
+		System.out.println("__________________________\n\n");
 	}
 
 	public Path calculate(Path nodeOnlyPath) {
@@ -61,7 +54,8 @@ public class PathGenerator extends LogBase {
 			smoothPath.waypoints = smoother(smoothPath, 0.1, 0.3, 0.0000001);
 		}
 		tagVelocity(smoothPath);
-		smoothPath.waypoints.remove(smoothPath.waypoints.size() - 1);
+
+		// smoothPath.waypoints.remove(smoothPath.waypoints.size() - 1);
 
 		log("pathgeneratecalctime", execTimer.time());
 		return smoothPath;
@@ -276,6 +270,12 @@ public class PathGenerator extends LogBase {
 	}
 
 	private double getMaxAchieveableVelocity(double timeAccel, double distance, double velocity0) {
+		// System.out.println(i + "]: " + path.waypoints.get(i));
+		System.out.println("dist " + distance);
+		System.out.println("vel0 " + velocity0);
+		System.out.println("accTime " + timeAccel);
+		System.out.println("vel " + Math.sqrt(velocity0 * velocity0 + 2 * timeAccel * distance));
+		System.out.println("_____________________________________________");
 		return Math.sqrt(velocity0 * velocity0 + 2 * timeAccel * distance);
 	}
 
