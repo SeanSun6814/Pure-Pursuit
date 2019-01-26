@@ -13,12 +13,12 @@ public class PathGenerator extends LogBase {
 		Path path;
 		PathGenerator pathGenerator = new PathGenerator();
 
-		boolean reset, reverse;
-		List<Waypoint> waypoints;
+		// boolean reset, reverse;
+		// List<Waypoint> waypoints;
 		RobotPathConfig config;
 
-		reset = true;
-		reverse = false;
+		// reset = true;
+		// reverse = false;
 		config = RobotPathConfig.getPracticeRobotConfig();
 
 		path = pathGenerator.calculate(new Path(config.spacing, config.maxVel, config.maxAcc, config.maxAngVel,

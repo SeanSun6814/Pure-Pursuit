@@ -155,10 +155,12 @@ public class PathFollower extends LogBase {
 		int currentPathIndex = getClosestWaypointIndex(robotPos);
 		if ((currentPathIndex + 0.0) / (path.waypoints.size() + 0.0) < 0.5) {
 			// not even half done, haven't finished path
-			done = false;
+			// done = false;
 			return;
 		}
-
+		log("progress", (currentPathIndex + 0.0) / (path.waypoints.size() + 0.0));
+		log("currentIndex", currentPathIndex);
+		log("totalIndex", path.waypoints.size());
 		double distance = distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p);
 		if (distance <= targetTolerance) {
 			log("We are pretty close to target, let's see if we go even closer.");
@@ -166,9 +168,10 @@ public class PathFollower extends LogBase {
 				log("Ok, we are starting to get further away from the target, let's stop now.");
 				done = true;
 				log("FINISHED PATH!!!!!!!!!!!!");
+			} else {
+				log("Ok, we are going to drive a tiny bit further to see if we can still get closer.");
 			}
 			prevDist2Target = distance;
-			done = false;
 		}
 	}
 

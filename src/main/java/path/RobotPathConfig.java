@@ -32,7 +32,7 @@ public class RobotPathConfig {
         practiceRobotConfig.maxAngVel = 2; // radians per second
         practiceRobotConfig.lookAheadDistance = Units.ft2m(1.8);
         practiceRobotConfig.trackWidth = Units.in2m(25);// 23 inches
-        practiceRobotConfig.targetTolerance = Units.in2m(4);// m
+        practiceRobotConfig.targetTolerance = Units.in2m(2);// m
         practiceRobotConfig.physicalMaxVel = Units.ft2m(12);
         practiceRobotConfig.kV = 1 / practiceRobotConfig.physicalMaxVel;
         practiceRobotConfig.kA = 2 / 9;
