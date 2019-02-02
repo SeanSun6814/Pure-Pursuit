@@ -53,8 +53,8 @@ public class Drive extends Subsystem {
 
         turn = applyDeadband(turn);
 
-        double right = power * 0.55 + turn * 0.8 * 0.55;
-        double left = power * 0.55 - turn * 0.8 * 0.55;
+        double right = power * 0.55 + turn * 0.7 * 0.55;
+        double left = power * 0.55 - turn * 0.7 * 0.55;
 
         // ramp
         right = ramp(right, prevRightMotor);

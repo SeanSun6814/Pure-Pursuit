@@ -31,7 +31,7 @@ class LogVisualizer extends JFrame implements KeyListener {
     Draw draw;
 
     // final String fileName = "C:\\Users\\Sean\\Desktop\\LogJ.csv";
-    final String fileName = "C:\\Users\\Sean\\Desktop\\LogSlower.csv";
+    final String fileName = "C:\\Users\\Sean\\Desktop\\Logd.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\Thursday
     // logs\\LogLeftLast.csv";
     // final String fileName = "C:\\Users\\Sean\\Desktop\\LogLeftTooFast.csv";
@@ -110,6 +110,7 @@ class LogVisualizer extends JFrame implements KeyListener {
         data.add(new ArrayList<>()); // idx 15: finished path: 1 if true, 0 if false
         data.add(new ArrayList<>()); // idx 16: on path: 1 if true, 0 if false
         data.add(new ArrayList<>()); // idx 17: encoder velocity
+        data.add(new ArrayList<>()); // idx 18: distance to target
 
         path.add(new ArrayList<>()); // idx 0: x pos
         path.add(new ArrayList<>()); // idx 1: y pos
@@ -185,6 +186,9 @@ class LogVisualizer extends JFrame implements KeyListener {
             } else if (title.equals("encodervelocityr")) {
                 double v = Double.parseDouble(message);
                 data.get(17).add(v);
+            } else if (title.equals("dist2target")) {
+                double d = Double.parseDouble(message);
+                data.get(18).add(d);
             }
         }
 
@@ -365,6 +369,7 @@ class Draw extends JPanel {
         g.drawString("Actual Motors Left Right: (" + getString(12) + ", " + getString(13) + ")", xPos, spacing * i++);
         g.drawString("On Path: " + (delta(getData(16), 1) < 0.1 ? "TRUE" : "FALSE") + ";  Finished Path: "
                 + (delta(getData(15), 1) < 0.1 ? "TRUE" : "FALSE"), xPos, spacing * i++);
+        g.drawString("Distance2Target: " + getString(18), xPos, spacing * i++);
 
     }
 

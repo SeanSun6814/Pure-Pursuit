@@ -152,6 +152,8 @@ public class PathFollower extends LogBase {
 	}
 
 	private void calculateFinishedPath(Point robotPos) {
+		log("dist2target", distanceBetween(robotPos, path.waypoints.get(path.waypoints.size() - 1).p));
+
 		int currentPathIndex = getClosestWaypointIndex(robotPos);
 		if ((currentPathIndex + 0.0) / (path.waypoints.size() + 0.0) < 0.5) {
 			// not even half done, haven't finished path
@@ -172,6 +174,9 @@ public class PathFollower extends LogBase {
 				log("Ok, we are going to drive a tiny bit further to see if we can still get closer.");
 			}
 			prevDist2Target = distance;
+		} else {
+			if (prevDist2Target < Double.MAX_VALUE)
+				done = true;
 		}
 	}
 
